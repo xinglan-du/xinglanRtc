@@ -1,0 +1,78 @@
+XinglanRtc Non-Commercial License (XNCL)
+Version 1.2 — 2025
+版权声明 / Copyright
+
+版权所有 © 2025 www.duxinglan.cn
+
+All rights reserved © 2025 www.duxinglan.cn
+
+1. 授权范围 / Permission Grant
+
+中文：
+在遵守本许可证全部条款的前提下，特此授予任何自然人，仅出于个人学习、研究与非商业目的，使用、复制、修改本软件源代码的权限。
+任何形式的再分发，必须完整保留本版权声明与本许可证文本，且不得附加任何额外限制。
+
+English:
+Subject to full compliance with this License, permission is hereby granted to any individual, for personal learning, research, and non-commercial purposes only, to use, copy, and modify the source code of this software.
+Any redistribution must retain this copyright notice and the full text of this License, without imposing additional restrictions.
+
+2. 禁止商业用途 / Prohibition of Commercial Use
+
+中文：
+除非事先获得版权所有者的明确书面授权，严禁以任何形式将本软件或其衍生作品用于商业用途。
+
+商业用途包括但不限于以下情形：
+
+出售、出租、许可或转让本软件或其衍生作品；
+
+将本软件用于任何收费系统、付费产品、订阅服务、SaaS 服务或其他盈利性项目；
+
+因本软件提供收费的安装、部署、运维、咨询、培训或技术支持服务（即使软件本身免费）；
+
+在企业、机构、组织或任何商业环境中使用本软件（包括但不限于内部系统、测试、PoC 或演示）；
+
+基于本软件提供任何直接或间接产生经济收益的服务或解决方案。
+
+English:
+Unless explicitly authorized in writing by the copyright holder, any form of commercial use of this software or its derivative works is strictly prohibited.
+
+Commercial use includes, but is not limited to:
+
+Selling, leasing, licensing, or transferring this software or derivative works;
+
+Using this software in any paid, monetized, subscription-based, SaaS, or revenue-generating product or service;
+
+Charging fees for installation, deployment, operation, maintenance, consulting, training, or technical support related to this software (even if the software itself is provided free of charge);
+
+Using this software in any corporate, institutional, organizational, or business environment, including internal systems, testing, proof-of-concept, or demonstrations;
+
+Providing any service or solution that directly or indirectly generates revenue based on this software.
+
+3. 免责声明 / Disclaimer
+
+中文：
+本软件按“现状”提供，不附带任何形式的明示或暗示担保，包括但不限于对适销性、特定用途适用性或不侵权的担保。
+因使用本软件所产生的任何风险或损失，均由使用者自行承担。
+
+English:
+This software is provided “as is”, without warranty of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.
+The entire risk arising out of the use of this software remains with the user.
+
+4. 商业授权声明 / Commercial Licensing Statement
+
+中文：
+本软件当前不提供任何形式的商业授权。任何商业授权申请均视为无效，且不会被受理。
+
+English:
+This software does not offer any form of commercial license at this time.
+All requests for commercial licensing will be declined.
+
+5. 其他说明 / Additional Notes
+
+中文：
+本许可证为自定义非开源许可证，不符合 OSI（Open Source Initiative）对开源许可证的定义。
+任何未经授权的商业使用、再授权或规避本许可证限制的行为，均构成侵权，版权所有者保留依法追究法律责任的权利。
+
+English:
+This is a custom, non-open-source license and does not conform to the Open Source Initiative (OSI) definition of open source.
+Any unauthorized commercial use, re-licensing, or circumvention of the restrictions of this License constitutes infringement, and the copyright holder reserves the right to pursue legal remedies.

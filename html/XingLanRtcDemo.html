@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebRTC Video Example</title>
+</head>
+<script type="application/javascript">
+    const wsPath = "ws://127.0.0.1:8080/xinglan";
+    let socket;
+    let pc; // RTCPeerConnection 全局化，方便复用
+    let nodeId;
+    let sendTransceiver = null;
+
+    async function init() {
+        pc = new RTCPeerConnection();
+
+        // 处理 ICE candidate
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                console.log('ICE candidate:', event.candidate.candidate);
+            } else {
+                console.log('All ICE candidates gathered');
+            }
+        };
+
+        // 当远端发来视频流时，显示在 video 标签里
+        pc.ontrack = (event) => {
+            let stream;
+
+            if (event.streams && event.streams.length > 0) {
+                stream = event.streams[0];
+            } else {
+                // SFU / 裸 track 场景
+                stream = new MediaStream([event.track]);
+            }
+
+            const streamId = stream.id;
+
+            let remoteVideo = document.getElementById(streamId);
+            if (!remoteVideo) {
+                remoteVideo = document.createElement("video");
+                remoteVideo.id = streamId;
+                remoteVideo.autoplay = true;
+                remoteVideo.playsInline = true;
+                remoteVideo.style.width = "300px";
+                remoteVideo.style.margin = "5px";
+
+                document
+                    .getElementById("remoteVideosContainer")
+                    .appendChild(remoteVideo);
+            }
+
+            remoteVideo.srcObject = stream;
+        };
+
+
+        pc.oniceconnectionstatechange = () => {
+            console.log("ICE state:", pc.iceConnectionState);
+            if (pc.iceConnectionState === "connected") {
+                console.log("ICE connected, DTLS will start automatically");
+            }
+        };
+
+        await navigator.mediaDevices.getUserMedia({video: true, audio: false});
+
+        // ⭐ 加载摄像头下拉框
+        await loadCameras();
+
+
+    }
+
+    async function connect() {
+        socket = new WebSocket(wsPath);
+
+        socket.onopen = async function () {
+            console.log("连接成功");
+            await init();
+        };
+
+        socket.onclose = function () {
+            console.log("连接断开")
+        };
+
+        socket.onmessage = async function (event) {
+            console.log("收到消息：", event.data);
+            const jsonData = JSON.parse(event.data);
+
+            if (jsonData.type === 0) { // 收到 offer
+                nodeId = jsonData.data.nodeId;
+                console.log("接收到创建node消息：", nodeId);
+            } else if (jsonData.type === 1) {
+                await handleNodeData(jsonData.data);
+            }
+        };
+
+        socket.onerror = function (error) {
+            console.log("连接错误:" + error.message);
+        }
+    }
+
+    async function handleNodeData(nodeData) {
+        console.log("nodeData", nodeData);
+        if (nodeData.data.type === 0) {
+            await setOffer(nodeData.data.data);
+        } else if (nodeData.data.type === 1) {
+            await setAnswer(nodeData.data.data);
+        }
+
+    }
+
+
+    async function setAnswer(answer) {
+        console.log("接收到answer:", answer)
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    }
+
+    async function setOffer(offer) {
+        console.log("接收到offer:", offer)
+        // 设置远端 SDP
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        console.log("设置成功，生成answer:");
+        // 创建 answer
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        console.log("发送 answer:", answer);
+
+        // 发送 answer 给信令服务器
+        sendMessage({
+            type: 1,
+            data: {
+                nodeId: nodeId,
+                data: {
+                    type: 1,
+                    data: answer
+                }
+            }
+        });
+    }
+
+    function sendMessage(msg) {
+        socket.send(JSON.stringify(msg));
+    }
+
+    function applyNode() {
+        sendMessage({
+            type: 0,
+            data: {
+                transportType: 0,
+                version: 1
+            }
+        });
+    }
+
+    async function loadCameras() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameraSelect = document.getElementById("cameraSelect");
+
+        cameraSelect.innerHTML = "";
+        devices
+            .filter(d => d.kind === "videoinput")
+            .forEach(d => {
+                const opt = document.createElement("option");
+                opt.value = d.deviceId;
+                opt.text = d.label || `摄像头${cameraSelect.length + 1}`;
+                cameraSelect.appendChild(opt);
+            });
+    }
+
+    async function switchCamera() {
+        const cameraId = document.getElementById("cameraSelect").value;
+
+        // 获取新视频轨道
+        const newStream = await navigator.mediaDevices.getUserMedia({
+            video: {deviceId: {exact: cameraId}}
+        });
+        const newTrack = newStream.getVideoTracks()[0];
+
+        if (!sendTransceiver) {
+            // 第一次创建 sendonly 的媒体行
+            sendTransceiver = pc.addTransceiver(newTrack, {
+                direction: "sendonly"
+            });
+            console.log("创建 sendonly m-line");
+        } else {
+            // 替换 sendonly 媒体行的视频轨道
+            await sendTransceiver.sender.replaceTrack(newTrack);
+            console.log("替换 sendonly m-line 轨道");
+        }
+
+        // 更新本地预览
+        document.getElementById("localVideo").srcObject = newStream;
+
+        // 生成 offer（你自行发送）
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        sendMessage({
+            type: 1,
+            data: {
+                nodeId: nodeId,
+                data: {
+                    type: 0,
+                    data: offer
+                }
+            }
+        });
+        console.log("生成 offer:", offer);
+
+        // 你自己处理发送
+        // sendMessageOffer(offer);
+    }
+
+
+    async function printReceiverReportStats() {
+        if (!pc) return;
+
+        const stats = await pc.getStats();
+        stats.forEach(report => {
+            if ((report.type === "outbound-rtp" || report.type === "inbound-rtp") && report.kind === "video") {
+                // 过滤你需要的类型，例如 video 流
+                const info = `
+                    ===== Receiver Report Stats =====
+                    SSRC: ${report.ssrc || "N/A"}
+                    Packets Lost (fractionLost): ${report.fractionLost ?? "N/A"}
+                    Jitter (ms): ${report.jitter ? (report.jitter * 1000).toFixed(2) : "N/A"}
+                    Total Packets Received: ${report.packetsReceived ?? "N/A"}
+                    Total Bytes Received: ${report.bytesReceived ?? "N/A"}
+                    =================================
+                    `;
+                console.log(info, report);
+            }
+
+        });
+    }
+
+
+    // 每 1 秒打印一次 RR 相关统计
+    // setInterval(printReceiverReportStats, 1000);
+
+
+    window.onload = connect;
+</script>
+<body>
+<h2>本地视频</h2>
+<video id="localVideo" autoplay playsinline muted width="320" height="240"></video>
+
+<h3>选择摄像头</h3>
+<button onclick="applyNode()">申请node节点</button>
+<label for="cameraSelect">选择摄像头</label><select id="cameraSelect"></select>
+<button onclick="switchCamera()">切换摄像头/生成Offer</button>
+
+<h2>远端视频</h2>
+<div id="remoteVideosContainer"></div>
+
+</body>
+</html>
