@@ -150,10 +150,7 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
 
     @Override
     public void onPli() {
-        log.info("有人请求当前生产者的关键帧：{},当前的引用{}", primarySsrc, this);
-        if (requestKeyframes.compareAndSet(false, true)) {
-            requestKeyframes.set(true);
-        }
+        requestKeyframes.compareAndSet(false, true);
     }
 
     @Override

@@ -81,7 +81,7 @@ public class RtpThreadProcessor {
 
     public void addRtpByteBuf(DatagramChannel channel, InetSocketAddress remoteAddress, ByteBuf byteBuf) {
         RtpPackProcessor rtpPackProcessor = rtpPackProcessorHashMap.computeIfAbsent(remoteAddress, socketAddress -> {
-            log.debug("创建连接服务：{},端口号：{}", remoteAddress.getHostString(), remoteAddress.getPort());
+            log.info("创建连接服务：{},端口号：{}", remoteAddress.getHostString(), remoteAddress.getPort());
             return new RtpPackProcessor(channel, remoteAddress, this);
         });
         rtpPackProcessor.addPacket(byteBuf);
