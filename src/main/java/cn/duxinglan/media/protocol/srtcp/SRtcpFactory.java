@@ -2,6 +2,7 @@ package cn.duxinglan.media.protocol.srtcp;
 
 import cn.duxinglan.media.protocol.rtcp.*;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,6 +54,7 @@ public class SRtcpFactory {
                     psFbRtcpPacket.setLength(length);
                     psFbRtcpPacket.setSenderSsrc(packetBody.readUnsignedInt());
                     psFbRtcpPacket.setMediaSsrc(packetBody.readUnsignedInt());
+
                     yield psFbRtcpPacket;
                 }
                 case SENDER_REPORT -> {
@@ -196,6 +198,30 @@ public class SRtcpFactory {
         SRtcpPacket sRtcpPacket = new SRtcpPacket(rtcpAuthTagLength);
         sRtcpPacket.setDecryptByteBuf(buffer);
         return sRtcpPacket;
+    }
+
+    static void main() {
+        ReceiverReportRtcpPacket receiverReportRtcpPacket = new ReceiverReportRtcpPacket();
+        receiverReportRtcpPacket.setVersion((byte) 2);
+        receiverReportRtcpPacket.setPadding((byte) 0);
+        receiverReportRtcpPacket.setRc(1);
+        receiverReportRtcpPacket.setLength(7);
+        receiverReportRtcpPacket.setPayloadType(RtcpPayloadType.RECEIVER_REPORT.value);
+        receiverReportRtcpPacket.setSsrc(2857616265L);
+        ReceiverReportBlock receiverReportBlock = new ReceiverReportBlock();
+        receiverReportBlock.setSourceSsrc(2857616265L);
+        receiverReportBlock.setFractionLost(0);
+        receiverReportBlock.setLost(0);
+        receiverReportBlock.setExtHighestSeq(0);
+        receiverReportBlock.setCycles(0);
+        receiverReportBlock.setJitter(0);
+        receiverReportBlock.setLsr(0);
+        receiverReportBlock.setDlsr(0);
+        receiverReportBlock.setDelaySeconds(0);
+        receiverReportRtcpPacket.addReceiverReportBlock(receiverReportBlock);
+        ByteBuf buffer = Unpooled.buffer(1500);
+        parseReceiverReport(receiverReportRtcpPacket,buffer);
+        System.out.println(ByteBufUtil.hexDump(buffer));
     }
 
     private static void parseReceiverReport(ReceiverReportRtcpPacket receiverReportRtcpPacket, ByteBuf byteBuf) {

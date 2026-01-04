@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <title>WebRTC Video Example</title>
 </head>
+<style>
+    .video-wrapper {
+        display: inline-block;
+        margin: 5px;
+        text-align: center;
+    }
+
+    .ssrc-info {
+        font-size: 12px;
+        color: #333;
+        margin-top: 4px;
+    }
+</style>
+
 <script type="application/javascript">
     const wsPath = "ws://127.0.0.1:8080/xinglan";
     let socket;
@@ -30,28 +44,40 @@
             if (event.streams && event.streams.length > 0) {
                 stream = event.streams[0];
             } else {
-                // SFU / 裸 track 场景
                 stream = new MediaStream([event.track]);
             }
 
-            const streamId = stream.id;
+            const trackId = event.track.id;
 
-            let remoteVideo = document.getElementById(streamId);
-            if (!remoteVideo) {
-                remoteVideo = document.createElement("video");
-                remoteVideo.id = streamId;
-                remoteVideo.autoplay = true;
-                remoteVideo.playsInline = true;
-                remoteVideo.style.width = "300px";
-                remoteVideo.style.margin = "5px";
+            let wrapper = document.querySelector(
+                `.video-wrapper[data-track-id="${trackId}"]`
+            );
+
+            if (!wrapper) {
+                wrapper = document.createElement("div");
+                wrapper.className = "video-wrapper";
+                wrapper.dataset.trackId = trackId;
+
+                const video = document.createElement("video");
+                video.autoplay = true;
+                video.playsInline = true;
+                video.style.width = "300px";
+                video.srcObject = stream;
+
+                const info = document.createElement("div");
+                info.className = "ssrc-info";
+                info.innerText = "SSRC: -";
+
+                wrapper.appendChild(video);
+                wrapper.appendChild(info);
 
                 document
                     .getElementById("remoteVideosContainer")
-                    .appendChild(remoteVideo);
+                    .appendChild(wrapper);
             }
-
-            remoteVideo.srcObject = stream;
         };
+
+
 
 
         pc.oniceconnectionstatechange = () => {
@@ -68,6 +94,55 @@
 
 
     }
+
+    async function printAllSSRC() {
+        if (!pc) return;
+
+        const stats = await pc.getStats();
+
+        /** ===== 发送端 SSRC ===== */
+        stats.forEach(report => {
+            if (
+                report.type === "outbound-rtp" &&
+                report.kind === "video"
+            ) {
+                const info = document.getElementById("localSSRCInfo");
+                if (info) {
+                    info.innerText = `Send SSRC: ${report.ssrc}`;
+                }
+                console.log("Send SSRC:", report.ssrc);
+            }
+        });
+
+        for (const receiver of pc.getReceivers()) {
+            if (!receiver.track || receiver.track.kind !== "video") continue;
+
+            const receiverStats = await receiver.getStats();
+
+            receiverStats.forEach(report => {
+                if (report.type === "inbound-rtp") {
+                    const trackId = receiver.track.id;
+
+                    const wrapper = document.querySelector(
+                        `.video-wrapper[data-track-id="${trackId}"]`
+                    );
+
+                    if (wrapper) {
+                        const info = wrapper.querySelector(".ssrc-info");
+                        info.innerText = `Recv SSRC: ${report.ssrc}`;
+                    }
+
+                    console.log(
+                        "Recv SSRC:",
+                        report.ssrc,
+                        "Track:",
+                        trackId
+                    );
+                }
+            });
+        }
+    }
+
 
     async function connect() {
         socket = new WebSocket(wsPath);
@@ -243,12 +318,17 @@
 </script>
 <body>
 <h2>本地视频</h2>
-<video id="localVideo" autoplay playsinline muted width="320" height="240"></video>
+<div class="video-wrapper">
+    <video id="localVideo" autoplay playsinline muted width="320" height="240"></video>
+    <div id="localSSRCInfo" class="ssrc-info">Send SSRC: -</div>
+</div>
+
 
 <h3>选择摄像头</h3>
 <button onclick="applyNode()">申请node节点</button>
 <label for="cameraSelect">选择摄像头</label><select id="cameraSelect"></select>
 <button onclick="switchCamera()">切换摄像头/生成Offer</button>
+<button onclick="printAllSSRC()">获取发送/接收 SSRC</button>
 
 <h2>远端视频</h2>
 <div id="remoteVideosContainer"></div>
