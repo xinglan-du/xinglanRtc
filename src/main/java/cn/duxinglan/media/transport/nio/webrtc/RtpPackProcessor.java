@@ -5,6 +5,7 @@ import cn.duxinglan.media.core.IMediaNode;
 import cn.duxinglan.media.core.IMediaTransport;
 import cn.duxinglan.media.core.INetworkPacket;
 import cn.duxinglan.media.impl.webrtc.NodeFlowManager;
+import cn.duxinglan.media.protocol.rtcp.PsFbRtcpPacket;
 import cn.duxinglan.media.protocol.rtcp.RtcpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpFactory;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
@@ -17,6 +18,7 @@ import cn.duxinglan.media.transport.nio.webrtc.handler.dtls.DtlsHandler;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.IceHandler;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.LocalIceInfo;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -295,7 +297,13 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
             int rtcpAuthTagLength = srtpContextFactory.getSrtpProfilesType().rtcpAuthTagLength;
             SRtcpPacket srtcpPacket = SRtcpFactory.parseRtcpToSRtcp(rtcpPackets, rtcpAuthTagLength);
             SRtcpContext serverSRtcpContext = srtpContextFactory.getServerSRtcpContext(srtcpPacket.getDecryptSsrc());
-            srtcpPacket.encrypt(serverSRtcpContext);
+            ByteBuf encrypt = srtcpPacket.encrypt(serverSRtcpContext);
+            for (RtcpPacket rtcpPacket : rtcpPackets) {
+                if (rtcpPacket instanceof PsFbRtcpPacket psFbRtcpPacket) {
+                    log.info("这是一个请求关键帧的接口请求的ssrc为：{},地址为:{},数据为：{},byte数据为：{}", psFbRtcpPacket.getMediaSsrc(), remoteAddress, psFbRtcpPacket, ByteBufUtil.hexDump(srtcpPacket.getDecrypt()));
+                }
+            }
+
 
             writePackage(srtcpPacket);
             serverSRtcpContext.addSentIndex();
