@@ -223,6 +223,7 @@ public class WebrtcMediaConsumer implements IConsumer {
     public void onRtcpPacket(RtcpPacket packet, InetSocketAddress remoteAddress) {
         if (packet instanceof PsFbRtcpPacket psFbRtcpPacket) {
             if (this.mediaControl != null) {
+                log.info("消费者：{}；请求关键帧：{}",primarySsrc,this.mediaControl.getPrimarySsrc());
                 this.mediaControl.onPli();
             }
         }

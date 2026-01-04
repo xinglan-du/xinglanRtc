@@ -90,9 +90,11 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
                 }
                 case PsFbRtcpPacket psFbRtcpPacket -> {
                     if (psFbRtcpPacket.getFmt() != 1) {
+                        log.debug("fmt为{}，不处理请求关键帧的接口", psFbRtcpPacket.getFmt());
                         continue;
                     }
                     ssrc = psFbRtcpPacket.getMediaSsrc();
+                    log.info("接收到申请关键帧{}", psFbRtcpPacket);
                 }
                 case ReceiverReportRtcpPacket receiverReportRtcpPacket -> {
                     log.debug("暂时不处理接受处理");
@@ -171,29 +173,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
 
 
     public void sendReadyRtcpPackets(long nowNs) {
-        for (Map.Entry<Long, WebrtcMediaProducer> longWebrtcMediaProducerEntry : rtpMediaProducer.entrySet()) {
-            Long key = longWebrtcMediaProducerEntry.getKey();
-            WebrtcMediaProducer webrtcMediaProducer = longWebrtcMediaProducerEntry.getValue();
-            if (key != webrtcMediaProducer.getPrimarySsrc()) {
-//                log.info("子流 跳过");
-                continue;
-            }
-
-            List<RtcpPacket> rtcpPackets = new ArrayList<>();
-            ReceiverReportRtcpPacket receiverReportRtcpPacket = webrtcMediaProducer.consumeReceiverReport(nowNs);
-            if (receiverReportRtcpPacket != null) {
-                rtcpPackets.add(receiverReportRtcpPacket);
-            }
-
-            PsFbRtcpPacket psFbRtcpPacket = webrtcMediaProducer.consumePli();
-            if (psFbRtcpPacket != null) {
-                rtcpPackets.add(psFbRtcpPacket);
-            }
-            if (!rtcpPackets.isEmpty()) {
-                mediaTransport.sendRtcpPackets(rtcpPackets);
-            }
-        }
-
+        List<RtcpPacket> rtcpPackets = new ArrayList<>();
         for (Map.Entry<Long, WebrtcMediaConsumer> longWebrtcMediaConsumerEntry : rtpMediaConsumer.entrySet()) {
             Long key = longWebrtcMediaConsumerEntry.getKey();
             WebrtcMediaConsumer webrtcMediaConsumer = longWebrtcMediaConsumerEntry.getValue();
@@ -203,7 +183,6 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
             if (webrtcMediaConsumer.getTimeState() != WebrtcMediaConsumer.TimeState.RUNNING) {
                 continue;
             }
-            List<RtcpPacket> rtcpPackets = new ArrayList<>();
             SenderReportRtcpPacket senderReportRtcpPacket = webrtcMediaConsumer.buildSenderReportRtcpPacket(nowNs);
             SdesRtcpPacket sdesRtcpPacket = webrtcMediaConsumer.buildSdesRtcpPacket();
             if (senderReportRtcpPacket != null) {
@@ -215,6 +194,30 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
             if (rtcpPackets.isEmpty()) {
                 continue;
             }
+        }
+
+        for (Map.Entry<Long, WebrtcMediaProducer> longWebrtcMediaProducerEntry : rtpMediaProducer.entrySet()) {
+            Long key = longWebrtcMediaProducerEntry.getKey();
+            WebrtcMediaProducer webrtcMediaProducer = longWebrtcMediaProducerEntry.getValue();
+            if (key != webrtcMediaProducer.getPrimarySsrc()) {
+//                log.info("子流 跳过");
+                continue;
+            }
+
+
+            ReceiverReportRtcpPacket receiverReportRtcpPacket = webrtcMediaProducer.consumeReceiverReport(nowNs);
+            if (receiverReportRtcpPacket != null) {
+                rtcpPackets.add(receiverReportRtcpPacket);
+            }
+
+            PsFbRtcpPacket psFbRtcpPacket = webrtcMediaProducer.consumePli();
+            if (psFbRtcpPacket != null) {
+                log.info("{},生产者准备发送请求关键帧：{}；", nowNs, psFbRtcpPacket.getMediaSsrc());
+                rtcpPackets.add(psFbRtcpPacket);
+            }
+
+        }
+        if (!rtcpPackets.isEmpty()) {
             mediaTransport.sendRtcpPackets(rtcpPackets);
         }
 
