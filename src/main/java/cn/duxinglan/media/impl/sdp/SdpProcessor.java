@@ -3,7 +3,6 @@ package cn.duxinglan.media.impl.sdp;
 import cn.duxinglan.media.impl.webrtc.WebRTCCertificateGenerator;
 import cn.duxinglan.media.module.CacheModel;
 import cn.duxinglan.media.signaling.sdp.MediaDescription;
-import cn.duxinglan.media.signaling.sdp.RTCSessionDescriptionInit;
 import cn.duxinglan.media.signaling.sdp.SdpParse;
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
 import cn.duxinglan.media.signaling.sdp.codec.CodecFactory;
@@ -11,7 +10,10 @@ import cn.duxinglan.media.signaling.sdp.codec.VideoCodec;
 import cn.duxinglan.media.signaling.sdp.media.*;
 import cn.duxinglan.media.signaling.sdp.session.*;
 import cn.duxinglan.media.signaling.sdp.ssrc.SSRC;
-import cn.duxinglan.media.signaling.sdp.type.*;
+import cn.duxinglan.media.signaling.sdp.type.CodecType;
+import cn.duxinglan.media.signaling.sdp.type.MediaDirectionType;
+import cn.duxinglan.media.signaling.sdp.type.MediaInfoType;
+import cn.duxinglan.media.signaling.sdp.type.SetupType;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,27 +37,6 @@ import java.util.*;
 @Slf4j
 public class SdpProcessor {
 
-    //远端描述
-//    private SessionDescription localSessionDescription;
-
-    //本地描述
-//    private SessionDescription remoteSessionDescription;
-
-    /**
-     * 表示当前 WebRTC 会话中的媒体协商报价信息。
-     * 该变量包含会话描述，用于定义媒体连接中的各种参数，
-     * 如媒体类型、媒体格式、编解码器参数及相关约束条件等。
-     * 在 WebRTC 的信令交换流程中，此变量通常用于存储和发送媒体协商的 Offer 数据。
-     */
-//    private SessionDescription offer;
-
-    /**
-     * 表示用于存储WebRTC处理器中的应答(Session Description)的变量。
-     * 该变量用于保存由远程设备或节点提供的会话描述，用于WebRTC连接中的信令交换。
-     * Session Description包含了连接的元数据信息，例如媒体类型、编解码器支持等。
-     */
-//    private SessionDescription answer;
-
     /**
      * 表示一个用于处理 SDP 会话相关操作的回调接口实例。
      * 该回调接口允许提供 DTLS 密钥材料、媒体描述信息以及与 ICE 相关的操作。
@@ -78,44 +59,6 @@ public class SdpProcessor {
         return getSessionDescription();
     }
 
-    //设置远程描述
-/*    public void setRemoteDescription(SessionDescription remoteSessionDescription) {
-        this.remoteSessionDescription = remoteSessionDescription;
-    }*/
-
-    //设置本地描述
-/*
-    public void setLocalDescription(SessionDescription localSessionDescription) {
-        this.localSessionDescription = localSessionDescription;
-    }
-*/
-
-
-  /*  public RTCSessionDescriptionInit getOrCreateOffer() throws Exception {
-        if (offer == null) {
-            this.offer = getSessionDescription();
-        }
-        String sdp = sessionDescriptionToStr(offer);
-        log.debug("offer:{}", sdp);
-        return new RTCSessionDescriptionInit(RTCSdpType.OFFER, sdp);
-    }*/
-
-    /**
-     * 设置会话描述信息为指定的 answer 类型，并对相关媒体描述和 ICE 信息进行处理。
-     *
-     * @param answer 包含会话描述信息的 {@link RTCSessionDescriptionInit} 实例，应为类型为 ANSWER 的会话描述。
-     * @return 如果设置成功返回 true；如果输入的会话描述类型不为 ANSWER，则返回 false。
-     */
-   /* public boolean setAnswer(RTCSessionDescriptionInit answer) {
-        if (answer.type() != RTCSdpType.ANSWER) {
-            log.warn("客户端必需返回answer");
-            return false;
-        }
-        String sdp = answer.sdp();
-        log.info("answer:{}", sdp);
-        this.answer = strToSessionDescription(sdp);
-        return true;
-    }*/
     private SessionDescription getSessionDescription() throws SdpException {
         SessionDescription offer = new SessionDescription();
         offer.setVersion(Version.defaultVersion());

@@ -11,6 +11,7 @@ import cn.duxinglan.media.signaling.sdp.type.CodecType;
 import cn.duxinglan.media.signaling.sdp.type.RTCSdpType;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.IceHandler;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.LocalIceInfo;
+import cn.duxinglan.sdp.SdpParser;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -233,6 +234,9 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
 
 
     public void setRemoteDescription(RTCSessionDescriptionInit rtcSessionDescriptionInit) {
+        SessionDescription parse = SdpParser.parse(rtcSessionDescriptionInit.sdp());
+        log.info("当前远程的数据");
+
         if (rtcSessionDescriptionInit.type() == RTCSdpType.OFFER) {
             setRemoteDescription(sdpProcessor.strToSessionDescription(rtcSessionDescriptionInit.sdp()));
             SessionDescription answer = sdpProcessor.createAnswer();

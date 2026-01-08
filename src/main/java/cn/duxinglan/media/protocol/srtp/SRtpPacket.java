@@ -37,7 +37,6 @@ public class SRtpPacket implements INetworkPacket {
     public static final int RTP_HEADER_LENGTH = 12;
 
 
-
     /**
      * 表示一个用于存储解密后数据的 {@code ByteBuf} 对象。
      * 该字段在 SRTP 数据包的解密过程中被填充，用于暂存解密后的有效负载数据。
@@ -119,8 +118,6 @@ public class SRtpPacket implements INetworkPacket {
     }
 
 
-
-
     /**
      * 对比 SRTP 数据包中的认证标签（Auth Tag）和通过计算生成的标签，以验证数据包的完整性和认证。
      *
@@ -137,8 +134,14 @@ public class SRtpPacket implements INetworkPacket {
     }
 
 
-
-
+    /**
+     * 获取加密序列号（Sequence Number）。
+     * <p>
+     * 此方法从缓存中的加密数据中提取无符号的 16 位整数，
+     * 从而返回序列号，用于标识 SRTP 数据包的顺序。
+     *
+     * @return 加密数据包的序列号，表示为一个无符号 16 位整数。
+     */
     public int getEncryptSequenceNumber() {
         return encryptByteBuf.getUnsignedShort(2);
     }

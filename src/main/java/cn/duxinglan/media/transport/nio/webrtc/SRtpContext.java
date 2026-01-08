@@ -79,7 +79,15 @@ public class SRtpContext {
     }
 
 
+    /**
+     * 根据序列号和盐值密钥计算初始化向量 (IV)。
+     *
+     * @param sequenceNumber 数据包的序列号，用于生成初始化向量的一部分。
+     * @param saltKey 盐值密钥，用于混淆生成的初始化向量。
+     * @return 计算得到的初始化向量 (IV)。
+     */
     private byte[] calculationIV(int sequenceNumber, byte[] saltKey) {
+        //使用48个bit
         long index = (((long) roc) << 16) | sequenceNumber;
         byte[] iv = new byte[16];
         // byte[] iv = new byte[16];
