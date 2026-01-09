@@ -1,8 +1,10 @@
-package cn.duxinglan.sdp.parser.session;
+package cn.duxinglan.sdp.session.parser;
 
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
-import cn.duxinglan.media.signaling.sdp.session.Version;
-import cn.duxinglan.sdp.SdpLineParser;
+import cn.duxinglan.media.signaling.sdp.session.Origin;
+import cn.duxinglan.media.signaling.sdp.type.AddressType;
+import cn.duxinglan.media.signaling.sdp.type.NetworkType;
+import cn.duxinglan.sdp.session.SessionLineParser;
 import org.apache.commons.lang3.math.NumberUtils;
 
 /**
@@ -19,9 +21,9 @@ import org.apache.commons.lang3.math.NumberUtils;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public class VersionLineParser extends SdpLineParser {
+public class OriginLineParser extends SessionLineParser {
 
-    public static final String KEY = "v=";
+    public static final String KEY = "o=";
 
     @Override
     public String getLineStartWith() {
@@ -30,8 +32,9 @@ public class VersionLineParser extends SdpLineParser {
 
     @Override
     protected void parse(SessionDescription sessionDescription, String key, String value) {
-        Version version = new Version(NumberUtils.toInt(value, 1));
-        sessionDescription.setVersion(version);
+        String[] split = value.split(" ");
+        Origin origin = new Origin(split[0], NumberUtils.toLong(split[1]), NumberUtils.toInt(split[2]), NetworkType.fromValue(split[3]), AddressType.fromValue(split[4]), split[5]);// 默认值为 1
+        sessionDescription.setOrigin(origin);
     }
 
 

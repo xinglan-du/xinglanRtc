@@ -73,7 +73,7 @@ public class SdpProcessor {
 
         List<MediaDescription> offerMediaDescription = getOfferMediaDescription();
         for (MediaDescription mediaDescription : offerMediaDescription) {
-            bundle.addMid(mediaDescription.getMId());
+            bundle.addMid(mediaDescription.getMId().getId());
             offer.addMediaDescription(mediaDescription);
         }
         return offer;
@@ -103,7 +103,7 @@ public class SdpProcessor {
         }
         //dtls服务器
         mediaDescription.setSetup(new Setup(SetupType.PASSIVE));
-        mediaDescription.setMId(mediaDescriptionSpec.getMid());
+        mediaDescription.setMId(new MId(mediaDescriptionSpec.getMid()));
         if (mediaDescriptionSpec.isSendOnly()) {
             mediaDescription.setMediaDirection(new MediaDirection(MediaDirectionType.SENDONLY));
         } else if (mediaDescriptionSpec.isReadOnly()) {
@@ -111,7 +111,7 @@ public class SdpProcessor {
         } else {
             mediaDescription.setMediaDirection(new MediaDirection(MediaDirectionType.INACTIVE));
         }
-        mediaDescription.setRtcpMux(true);
+        mediaDescription.setRtcpMux(new RtcpMux(true));
         List<CodecType> codecTypes = sdpProcessorCallback.getCodecTypes();
         for (CodecType codecType : codecTypes) {
             VideoCodec videoCodec = CodecFactory.createVideoCodec(codecType);
@@ -166,22 +166,22 @@ public class SdpProcessor {
 
             //ICE信息
             IceInfo iceInfo = mediaVideoDescription.getIceInfo();
-            sb.append(String.format("a=ice-ufrag:%s", iceInfo.ufrag())).append("\r\n");
-            sb.append(String.format("a=ice-pwd:%s", iceInfo.pwd())).append("\r\n");
-            sb.append(String.format("a=ice-options:%s", iceInfo.options())).append("\r\n");
+            sb.append(String.format("a=ice-ufrag:%s", iceInfo.getUfrag())).append("\r\n");
+            sb.append(String.format("a=ice-pwd:%s", iceInfo.getPwd())).append("\r\n");
+            sb.append(String.format("a=ice-options:%s", iceInfo.getOptions())).append("\r\n");
 
             //证书信息
             Fingerprint fingerprint = mediaVideoDescription.getFingerprint();
             sb.append(String.format("a=fingerprint:%s %s", fingerprint.type().value, fingerprint.finger())).append("\r\n");
             sb.append(String.format("a=setup:%s", mediaVideoDescription.getSetup().type().value)).append("\r\n");
-            sb.append(String.format("a=mid:%s", mediaVideoDescription.getMId())).append("\r\n");
+            sb.append(String.format("a=mid:%s", mediaVideoDescription.getMId().getId())).append("\r\n");
             sb.append(String.format("a=%s", mediaVideoDescription.getMediaDirection().type().value)).append("\r\n");
             String msid = null;
             if (mediaVideoDescription.getMsid() != null) {
                 msid = String.format("stream-%s track-%s", mediaVideoDescription.getMsid().streamId(), mediaVideoDescription.getMId());
                 sb.append("a=msid:").append(msid).append("\r\n");
             }
-            if (mediaVideoDescription.getRtcpMux()) {
+            if (mediaVideoDescription.getRtcpMux().enabled()) {
                 sb.append("a=rtcp-mux").append("\r\n");
             }
             sb.append(CacheModel.getLocalCandidate().toSdpStr()).append("\r\n");
@@ -250,16 +250,16 @@ public class SdpProcessor {
             mediaDescription.setConnection(Connection.parseLine(stringListMap.get(Connection.KEY).getFirst()));
             aExtMap = SdpParse.aExtMapToMap(stringListMap.get(SdpParse.EXPAND_KEY), SdpParse.EXPAND_DELIMITER);
             mediaDescription.setRtcpConnection(RtcpConnection.parseLine(aExtMap.get(RtcpConnection.KEY).getFirst()));
-            IceInfo iceInfo = new IceInfo(
-                    aExtMap.get(IceInfo.UFRAG_KEY).getFirst(),
-                    aExtMap.get(IceInfo.PWS).getFirst(),
-                    aExtMap.get(IceInfo.OPTIONS).getFirst()
-            );
+            IceInfo iceInfo = new IceInfo();
+            iceInfo.setUfrag(aExtMap.get(IceInfo.UFRAG_KEY).getFirst());
+            iceInfo.setPwd(aExtMap.get(IceInfo.PWS).getFirst());
+            iceInfo.setOptions(aExtMap.get(IceInfo.OPTIONS).getFirst());
+
             mediaDescription.setIceInfo(iceInfo);
-            mediaDescription.setMId(aExtMap.get(SdpParse.MID_KEY).getFirst());
+            mediaDescription.setMId(new MId(aExtMap.get(SdpParse.MID_KEY).getFirst()));
             resolveMediaDirection(aExtMap).ifPresent(mediaDescription::setMediaDirection);
             if (aExtMap.containsKey(SdpParse.RTCP_MUX)) {
-                mediaDescription.setRtcpMux(true);
+                mediaDescription.setRtcpMux(new RtcpMux(true));
             }
             if (mediaDescription.getInfo().type() == MediaInfoType.VIDEO) {
                 List<VideoCodec> videoCodecs = resolveVideoCodec(sdpLine);

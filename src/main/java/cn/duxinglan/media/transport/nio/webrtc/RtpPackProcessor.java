@@ -298,12 +298,6 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
             SRtcpPacket srtcpPacket = SRtcpFactory.parseRtcpToSRtcp(rtcpPackets, rtcpAuthTagLength);
             SRtcpContext serverSRtcpContext = srtpContextFactory.getServerSRtcpContext(srtcpPacket.getDecryptSsrc());
             ByteBuf encrypt = srtcpPacket.encrypt(serverSRtcpContext);
-            for (RtcpPacket rtcpPacket : rtcpPackets) {
-                if (rtcpPacket instanceof PsFbRtcpPacket psFbRtcpPacket) {
-                    log.info("这是一个请求关键帧的接口请求的ssrc为：{},地址为:{},数据为：{},byte数据为：{}", psFbRtcpPacket.getMediaSsrc(), remoteAddress, psFbRtcpPacket, ByteBufUtil.hexDump(srtcpPacket.getDecrypt()));
-                }
-            }
-
 
             writePackage(srtcpPacket);
             serverSRtcpContext.addSentIndex();

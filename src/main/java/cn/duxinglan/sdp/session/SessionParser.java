@@ -1,11 +1,10 @@
 package cn.duxinglan.sdp.session;
 
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
-import cn.duxinglan.sdp.SdpLineParser;
-import cn.duxinglan.sdp.parser.session.OriginLineParser;
-import cn.duxinglan.sdp.parser.session.SessionNameLineParser;
-import cn.duxinglan.sdp.parser.session.TimingLineParser;
-import cn.duxinglan.sdp.parser.session.VersionLineParser;
+import cn.duxinglan.sdp.session.parser.OriginLineParser;
+import cn.duxinglan.sdp.session.parser.SessionNameLineParser;
+import cn.duxinglan.sdp.session.parser.TimingLineParser;
+import cn.duxinglan.sdp.session.parser.VersionLineParser;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SessionParser {
 
 
-    private static final Map<String, SdpLineParser> parsers = new ConcurrentHashMap<>();
+    private static final Map<String, SessionLineParser> parsers = new ConcurrentHashMap<>();
 
     static {
         addParser(new VersionLineParser());
@@ -38,12 +37,12 @@ public class SessionParser {
 
     }
 
-    public static void addParser(SdpLineParser sdpLineParser) {
-        parsers.put(sdpLineParser.getLineStartWith(), sdpLineParser);
+    public static void addParser(SessionLineParser sessionLineParser) {
+        parsers.put(sessionLineParser.getLineStartWith(), sessionLineParser);
     }
 
     public static void parse(SessionDescription sessionDescription, String line) {
-        SdpLineParser parser = parsers.get(line.substring(0, 2));
+        SessionLineParser parser = parsers.get(line.substring(0, 2));
         if (parser == null) {
             return;
         }

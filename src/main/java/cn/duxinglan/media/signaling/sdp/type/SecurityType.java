@@ -1,6 +1,6 @@
 package cn.duxinglan.media.signaling.sdp.type;
 
-import java.util.Arrays;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
@@ -16,6 +16,7 @@ import java.util.Arrays;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
+@Slf4j
 public enum SecurityType {
 
     SHA256("sha-256");
@@ -27,10 +28,15 @@ public enum SecurityType {
         this.value = value;
     }
 
-    public static SecurityType fromValue(String string) {
-        return Arrays.stream(SecurityType.values())
-                .filter(securityType -> securityType.value.equals(string))
-                .findAny()
-                .orElse(null);
+    public static SecurityType fromValue(String value) {
+        for (SecurityType type : SecurityType.values()) {
+            if (type.value.equals(value)) {
+                return type;
+            }
+        }
+        log.warn("未实现的SecurityType:{}", value);
+        return null;
+
+
     }
 }

@@ -1,5 +1,7 @@
 package cn.duxinglan.media.impl.sdp;
 
+import lombok.Data;
+
 /**
  *
  * 版权所有 (c) 2025 www.duxinglan.cn
@@ -14,7 +16,8 @@ package cn.duxinglan.media.impl.sdp;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record IceInfo(String ufrag, String pwd, String options) {
+@Data
+public class IceInfo {
 
     public static final String UFRAG_KEY = "ice-ufrag";
     public static final String PWS = "ice-pwd";
@@ -24,6 +27,10 @@ public record IceInfo(String ufrag, String pwd, String options) {
     private static final char[] ICE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray();
 
     private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
+
+    private String ufrag;
+    private String pwd;
+    private String options;
 
     private static String randomIce(int len) {
         char[] buf = new char[len];
@@ -37,7 +44,12 @@ public record IceInfo(String ufrag, String pwd, String options) {
         // 规范：ufrag 长度 4–256；pwd 长度 22–256。这里选择更安全的长度。
         String ufrag = randomIce(16);
         String pwd = randomIce(32);
-        return new IceInfo(ufrag, pwd, "trickle");
+        IceInfo iceInfo = new IceInfo();
+        iceInfo.setUfrag(ufrag);
+        iceInfo.setPwd(pwd);
+        iceInfo.setOptions("trickle");
+
+        return iceInfo;
     }
 
 }

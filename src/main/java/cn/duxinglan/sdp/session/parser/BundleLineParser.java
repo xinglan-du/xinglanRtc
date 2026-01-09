@@ -1,8 +1,8 @@
-package cn.duxinglan.sdp.parser.session;
+package cn.duxinglan.sdp.session.parser;
 
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
 import cn.duxinglan.media.signaling.sdp.session.Timing;
-import cn.duxinglan.sdp.SdpLineParser;
+import cn.duxinglan.sdp.session.SessionLineParser;
 import org.apache.commons.lang3.math.NumberUtils;
 
 /**
@@ -19,7 +19,7 @@ import org.apache.commons.lang3.math.NumberUtils;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public class BundleLineParser extends SdpLineParser {
+public class BundleLineParser extends SessionLineParser {
 
     public static final String KEY = "t=";
 

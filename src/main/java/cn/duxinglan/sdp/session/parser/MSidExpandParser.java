@@ -1,8 +1,9 @@
-package cn.duxinglan.sdp.parser.session;
+package cn.duxinglan.sdp.session.parser;
 
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
-import cn.duxinglan.media.signaling.sdp.session.ExtMapAllowMixed;
-import cn.duxinglan.sdp.SdpLineParser;
+import cn.duxinglan.media.signaling.sdp.session.MSid;
+import cn.duxinglan.media.signaling.sdp.type.MediaStreamType;
+import cn.duxinglan.sdp.session.SessionLineParser;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -20,11 +21,11 @@ import lombok.extern.slf4j.Slf4j;
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
 @Slf4j
-public class ExtMapAllowMixedExpandParser extends SdpLineParser {
+public class MSidExpandParser extends SessionLineParser {
 
+    public static final String KEY = "msid-semantic";
 
-    public static final String KEY = "extmap-allow-mixed";
-
+    private static final String BUNDLE_KEY = "BUNDLE";
 
     @Override
     public String getLineStartWith() {
@@ -33,10 +34,13 @@ public class ExtMapAllowMixedExpandParser extends SdpLineParser {
 
     @Override
     protected void parse(SessionDescription sessionDescription, String key, String value) {
-        boolean allowMixed = false;
-        if (KEY.equals(value)) {
-            allowMixed = true;
-        }
-        sessionDescription.setExtMapAllowMixed(new ExtMapAllowMixed(allowMixed));
+        String[] parts = value.split(" ");
+
+        String type = parts[0];
+        String streamId = parts.length > 1 ? parts[1] : null;
+        String trackId = parts.length > 2 ? parts[2] : null;
+
+        MSid mSid = new MSid(MediaStreamType.fromValue(type), streamId, trackId);
+        sessionDescription.setMSid(mSid);
     }
 }

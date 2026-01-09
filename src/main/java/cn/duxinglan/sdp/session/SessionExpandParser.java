@@ -1,10 +1,9 @@
 package cn.duxinglan.sdp.session;
 
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
-import cn.duxinglan.sdp.SdpLineParser;
-import cn.duxinglan.sdp.parser.session.ExtMapAllowMixedExpandParser;
-import cn.duxinglan.sdp.parser.session.GroupExpandParser;
-import cn.duxinglan.sdp.parser.session.MSidExpandParser;
+import cn.duxinglan.sdp.session.parser.ExtMapAllowMixedExpandParser;
+import cn.duxinglan.sdp.session.parser.GroupExpandParser;
+import cn.duxinglan.sdp.session.parser.MSidExpandParser;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,10 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public class SessionExpandParser extends SdpLineParser {
+public class SessionExpandParser extends SessionLineParser {
 
 
-    private static final Map<String, SdpLineParser> parsers = new ConcurrentHashMap<>();
+    private static final Map<String, SessionLineParser> parsers = new ConcurrentHashMap<>();
 
     static {
         addParser(new GroupExpandParser());
@@ -34,8 +33,8 @@ public class SessionExpandParser extends SdpLineParser {
         addParser(new MSidExpandParser());
     }
 
-    public static void addParser(SdpLineParser sdpLineParser) {
-        parsers.put(sdpLineParser.getLineStartWith(), sdpLineParser);
+    public static void addParser(SessionLineParser sessionLineParser) {
+        parsers.put(sessionLineParser.getLineStartWith(), sessionLineParser);
     }
 
     public static final String KEY = "a=";
@@ -60,10 +59,10 @@ public class SessionExpandParser extends SdpLineParser {
             expandValue = value.substring(i + 1).trim();
         }
 
-        SdpLineParser sdpLineParser = parsers.get(expandKey);
-        if (sdpLineParser == null) {
+        SessionLineParser sessionLineParser = parsers.get(expandKey);
+        if (sessionLineParser == null) {
             return;
         }
-        sdpLineParser.onParse(sessionDescription, expandKey, expandValue);
+        sessionLineParser.onParse(sessionDescription, expandKey, expandValue);
     }
 }

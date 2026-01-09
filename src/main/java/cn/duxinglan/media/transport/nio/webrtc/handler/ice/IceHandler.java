@@ -82,7 +82,7 @@ public class IceHandler {
     public static LocalIceInfo craterLocalIceInfo(IMediaNode mediaNode) {
         LocalIceInfo localIceInfo = new LocalIceInfo();
         localIceInfo.setMediaNode(mediaNode);
-        ICE_INFO_MAP.put(localIceInfo.getLocalIceInfo().ufrag(), localIceInfo);
+        ICE_INFO_MAP.put(localIceInfo.getLocalIceInfo().getUfrag(), localIceInfo);
         return localIceInfo;
     }
 
@@ -106,7 +106,7 @@ public class IceHandler {
             if (localIceInfo == null) {
                 return;
             }
-            String password = localIceInfo.getLocalIceInfo().pwd();
+            String password = localIceInfo.getLocalIceInfo().getPwd();
             log.debug("这次stun消息使用的用户名:{};密码:{}", attributes.getUsername(), password);
             //校验数据
             if (verifyData(message, password)) {

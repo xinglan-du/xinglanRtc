@@ -1,11 +1,11 @@
-package cn.duxinglan.sdp.parser.session;
+package cn.duxinglan.sdp.session.parser;
 
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
-import cn.duxinglan.media.signaling.sdp.session.Origin;
-import cn.duxinglan.media.signaling.sdp.type.AddressType;
-import cn.duxinglan.media.signaling.sdp.type.NetworkType;
-import cn.duxinglan.sdp.SdpLineParser;
-import org.apache.commons.lang3.math.NumberUtils;
+import cn.duxinglan.media.signaling.sdp.session.Bundle;
+import cn.duxinglan.sdp.session.SessionLineParser;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Arrays;
 
 /**
  *
@@ -21,9 +21,12 @@ import org.apache.commons.lang3.math.NumberUtils;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public class OriginLineParser extends SdpLineParser {
+@Slf4j
+public class GroupExpandParser extends SessionLineParser {
 
-    public static final String KEY = "o=";
+    public static final String KEY = "group";
+
+    private static final String BUNDLE_KEY = "BUNDLE";
 
     @Override
     public String getLineStartWith() {
@@ -33,9 +36,12 @@ public class OriginLineParser extends SdpLineParser {
     @Override
     protected void parse(SessionDescription sessionDescription, String key, String value) {
         String[] split = value.split(" ");
-        Origin origin = new Origin(split[0], NumberUtils.toLong(split[1]), NumberUtils.toInt(split[2]), NetworkType.fromValue(split[3]), AddressType.fromValue(split[4]), split[5]);// 默认值为 1
-        sessionDescription.setOrigin(origin);
+        if (!split[0].equals(BUNDLE_KEY)) {
+            log.error("无法解析:{}", value);
+            return;
+        }
+        Bundle bundle = new Bundle();
+        bundle.setMid(Arrays.stream(split).skip(1).toList());
+        sessionDescription.setBundle(bundle);
     }
-
-
 }

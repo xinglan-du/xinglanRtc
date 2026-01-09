@@ -1,6 +1,6 @@
-package cn.duxinglan.sdp;
+package cn.duxinglan.sdp.media;
 
-import cn.duxinglan.media.signaling.sdp.SessionDescription;
+import cn.duxinglan.media.signaling.sdp.MediaDescription;
 
 /**
  *
@@ -16,14 +16,14 @@ import cn.duxinglan.media.signaling.sdp.SessionDescription;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public abstract class SdpLineParser {
+public abstract class MediaLineParser {
 
     /**
      * 获取该解析器支持处理的 SDP 行的起始标识符。
      *
      * @return 一个字符串，表示此解析器用来识别和处理的 SDP 行的前缀标识符。
      */
-    abstract public String getLineStartWith();
+    abstract public String[] getLineStartWith();
 
     /**
      * 解析给定的SDP行信息，并将其对应的键值解析后交由具体的处理方法。
@@ -31,14 +31,14 @@ public abstract class SdpLineParser {
      * @param sessionDescription 表示会话描述的对象，用于存储或更新解析后的SDP信息
      * @param line               SDP中的一行内容，包含键和值的完整字符串
      */
-    public void onParse(SessionDescription sessionDescription, String line) {
+    public void onParse(MediaDescription mediaDescription, String line) {
         String key = line.substring(0, 2).trim();
         String value = line.substring(2).trim();
-        parse(sessionDescription, key, value);
+        parse(mediaDescription, key, value);
     }
 
-    public void onParse(SessionDescription sessionDescription, String key, String value) {
-        parse(sessionDescription, key, value);
+    public void onParse(MediaDescription mediaDescription, String key, String value) {
+        parse(mediaDescription, key, value);
     }
 
     /**
@@ -48,6 +48,6 @@ public abstract class SdpLineParser {
      * @param key                表示 SDP 属性的键（例如 SDP 行的前缀标识符，如 "v=" 或 "o="）
      * @param value              表示键对应的值（例如 SDP 行中键的具体内容）
      */
-    abstract protected void parse(SessionDescription sessionDescription, String key, String value);
+    abstract protected void parse(MediaDescription mediaDescription, String key, String value);
 
 }

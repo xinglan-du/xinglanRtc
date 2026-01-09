@@ -7,6 +7,7 @@ import cn.duxinglan.media.impl.sdp.IceInfo;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -44,7 +45,9 @@ public class MediaDescription {
     /**
      * 媒体描述行ID
      */
-    protected String mId;
+    protected MId mId;
+
+    private LinkedHashMap<String, ExtMap> extMap = new LinkedHashMap<>();
 
     /**
      * 媒体方向
@@ -58,7 +61,7 @@ public class MediaDescription {
      * 如果值为true，则表明使用单个端口来同时传输RTP和RTCP数据，从而有效节省端口资源。
      * 如果值为false，则RTP和RTCP分别通过不同的端口进行传输。
      */
-    private Boolean rtcpMux = false;
+    private RtcpMux rtcpMux;
 
     /**
      * 编码器列表
@@ -102,4 +105,7 @@ public class MediaDescription {
     }
 
 
+    public void addExtMap(ExtMap extMap) {
+        this.extMap.put(extMap.getKey(), extMap);
+    }
 }

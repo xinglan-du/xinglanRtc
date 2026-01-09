@@ -1,11 +1,9 @@
-package cn.duxinglan.sdp.parser.session;
+package cn.duxinglan.sdp.session.parser;
 
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
-import cn.duxinglan.media.signaling.sdp.session.Bundle;
-import cn.duxinglan.sdp.SdpLineParser;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.Arrays;
+import cn.duxinglan.media.signaling.sdp.session.Version;
+import cn.duxinglan.sdp.session.SessionLineParser;
+import org.apache.commons.lang3.math.NumberUtils;
 
 /**
  *
@@ -21,12 +19,9 @@ import java.util.Arrays;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-@Slf4j
-public class GroupExpandParser extends SdpLineParser {
+public class VersionLineParser extends SessionLineParser {
 
-    public static final String KEY = "group";
-
-    private static final String BUNDLE_KEY = "BUNDLE";
+    public static final String KEY = "v=";
 
     @Override
     public String getLineStartWith() {
@@ -35,13 +30,9 @@ public class GroupExpandParser extends SdpLineParser {
 
     @Override
     protected void parse(SessionDescription sessionDescription, String key, String value) {
-        String[] split = value.split(" ");
-        if (!split[0].equals(BUNDLE_KEY)) {
-            log.error("无法解析:{}", value);
-            return;
-        }
-        Bundle bundle = new Bundle();
-        bundle.setMid(Arrays.stream(split).skip(1).toList());
-        sessionDescription.setBundle(bundle);
+        Version version = new Version(NumberUtils.toInt(value, 1));
+        sessionDescription.setVersion(version);
     }
+
+
 }

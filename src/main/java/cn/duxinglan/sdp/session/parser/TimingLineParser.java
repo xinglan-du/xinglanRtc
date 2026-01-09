@@ -1,8 +1,9 @@
-package cn.duxinglan.sdp.parser.session;
+package cn.duxinglan.sdp.session.parser;
 
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
-import cn.duxinglan.media.signaling.sdp.session.SessionName;
-import cn.duxinglan.sdp.SdpLineParser;
+import cn.duxinglan.media.signaling.sdp.session.Timing;
+import cn.duxinglan.sdp.session.SessionLineParser;
+import org.apache.commons.lang3.math.NumberUtils;
 
 /**
  *
@@ -18,9 +19,9 @@ import cn.duxinglan.sdp.SdpLineParser;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public class SessionNameLineParser extends SdpLineParser {
+public class TimingLineParser extends SessionLineParser {
 
-    public static final String KEY = "s=";
+    public static final String KEY = "t=";
 
     @Override
     public String getLineStartWith() {
@@ -29,8 +30,9 @@ public class SessionNameLineParser extends SdpLineParser {
 
     @Override
     protected void parse(SessionDescription sessionDescription, String key, String value) {
-        SessionName sessionName = new SessionName(value);
-        sessionDescription.setSessionName(sessionName);
+        String[] split = value.split(" ");
+        Timing timing = new Timing(NumberUtils.toLong(split[0]), NumberUtils.toLong(split[1]));
+        sessionDescription.setTiming(timing);
     }
 
 

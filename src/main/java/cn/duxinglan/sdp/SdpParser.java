@@ -1,6 +1,8 @@
 package cn.duxinglan.sdp;
 
+import cn.duxinglan.media.signaling.sdp.MediaDescription;
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
+import cn.duxinglan.sdp.media.MediaParser;
 import cn.duxinglan.sdp.session.SessionParser;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,9 +22,6 @@ import org.apache.commons.lang3.StringUtils;
  **/
 public class SdpParser {
 
-
-
-
     public static SessionDescription parse(String sdp) {
         if (StringUtils.isBlank(sdp)) {
             throw new SdpParseException("SDP is empty");
@@ -30,6 +29,7 @@ public class SdpParser {
         SdpParseState state = SdpParseState.SESSION;
 
         SessionDescription sessionDescription = new SessionDescription();
+        MediaDescription currentMediaDescription = null;
         String[] lines = sdp.split("\\r?\\n");
         for (String rawLine : lines) {
             String line = rawLine.trim();
@@ -37,23 +37,24 @@ public class SdpParser {
                 continue;
             }
             if (line.startsWith("m=")) {
-//                currentMedia = parseMediaLine(line);
-//                session.addMedia(currentMedia);
+                currentMediaDescription = new MediaDescription();
+                sessionDescription.addMediaDescription(currentMediaDescription);
                 state = SdpParseState.MEDIA;
-                continue;
             }
             switch (state) {
                 case SESSION:
                     SessionParser.parse(sessionDescription, line);
+                    break;
                 case MEDIA:
+                    MediaParser.parse(currentMediaDescription, line);
+                    break;
             }
 
         }
 
+
         return sessionDescription;
     }
-
-
 
 
     public enum SdpParseState {

@@ -101,7 +101,7 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
         this.keyMaterial = keyMaterial;
         this.webrtcProcessorEvent = webrtcProcessorEvent;
         this.localIceInfo = IceHandler.craterLocalIceInfo(webrtcProcessorEvent.getWebrtcNode());
-        log.debug("本地的ice信息ufrag：{};pwd:{}", localIceInfo.getLocalIceInfo().ufrag(), localIceInfo.getLocalIceInfo().pwd());
+        log.debug("本地的ice信息ufrag：{};pwd:{}", localIceInfo.getLocalIceInfo().getUfrag(), localIceInfo.getLocalIceInfo().getPwd());
         //默认offer有一个空的数据 用于交换数据
         try {
             createWebrtcSenderProcessor((MediaDescriptionSpec.SSRCDescribe) null);
@@ -234,9 +234,6 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
 
 
     public void setRemoteDescription(RTCSessionDescriptionInit rtcSessionDescriptionInit) {
-        SessionDescription parse = SdpParser.parse(rtcSessionDescriptionInit.sdp());
-        log.info("当前远程的数据");
-
         if (rtcSessionDescriptionInit.type() == RTCSdpType.OFFER) {
             setRemoteDescription(sdpProcessor.strToSessionDescription(rtcSessionDescriptionInit.sdp()));
             SessionDescription answer = sdpProcessor.createAnswer();
@@ -252,7 +249,7 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
         this.remoteSessionDescription = remoteSessionDescription;
 //        this.sdpProcessor.setRemoteDescription(remoteSessionDescription);
         this.localIceInfo.setRemoteIceInfo(remoteSessionDescription.getMediaDescriptions().getFirst().getIceInfo());
-        log.debug("远程的ice信息ufrag：{};pwd:{}", localIceInfo.getRemoteIceInfo().ufrag(), localIceInfo.getRemoteIceInfo().pwd());
+        log.debug("远程的ice信息ufrag：{};pwd:{}", localIceInfo.getRemoteIceInfo().getUfrag(), localIceInfo.getRemoteIceInfo().getPwd());
 
 
         Bundle bundle = remoteSessionDescription.getBundle();
@@ -270,7 +267,7 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
         List<MediaDescription> mediaDescriptionList = remoteSessionDescription.getMediaDescriptions();
 
         for (MediaDescription mediaVideoDescription : mediaDescriptionList) {
-            String mId = mediaVideoDescription.getMId();
+            String mId = mediaVideoDescription.getMId().getId();
             //这里需要明确一下。虽然这个是接受的属性，但是对应整个业务来说 这里属于生产者
             MediaDescriptionSpec mediaDescriptionSpec;
             if (mediaDescriptionSpecMap.containsKey(mId)) {
@@ -297,7 +294,7 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
 
         //TODO 暂时遗留 这里应该将数据结构化 。不应该直接使用
         for (MediaDescription mediaVideoDescription : mediaDescriptionList) {
-            String mId = mediaVideoDescription.getMId();
+            String mId = mediaVideoDescription.getMId().getId();
             MediaDescriptionSpec mediaDescriptionSpec;
             if (mediaDescriptionSpecMap.containsKey(mId)) {
                 mediaDescriptionSpec = mediaDescriptionSpecMap.get(mId);

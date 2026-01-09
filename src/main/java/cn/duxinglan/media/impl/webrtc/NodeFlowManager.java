@@ -212,7 +212,6 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
 
             PsFbRtcpPacket psFbRtcpPacket = webrtcMediaProducer.consumePli();
             if (psFbRtcpPacket != null) {
-                log.info("{},生产者准备发送请求关键帧：{}；", nowNs, psFbRtcpPacket.getMediaSsrc());
                 rtcpPackets.add(psFbRtcpPacket);
             }
 
