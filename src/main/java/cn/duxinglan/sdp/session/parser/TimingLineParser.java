@@ -29,10 +29,11 @@ public class TimingLineParser extends SessionLineParser {
     }
 
     @Override
-    protected void parse(SessionDescription sessionDescription, String key, String value) {
+    protected boolean parse(SessionDescription sessionDescription, String key, String value) {
         String[] split = value.split(" ");
         Timing timing = new Timing(NumberUtils.toLong(split[0]), NumberUtils.toLong(split[1]));
         sessionDescription.setTiming(timing);
+        return true;
     }
 
 

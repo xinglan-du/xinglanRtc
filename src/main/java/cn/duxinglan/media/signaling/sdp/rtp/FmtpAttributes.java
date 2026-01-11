@@ -1,4 +1,7 @@
-package cn.duxinglan.media.signaling.sdp.media;
+package cn.duxinglan.media.signaling.sdp.rtp;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
@@ -14,5 +17,14 @@ package cn.duxinglan.media.signaling.sdp.media;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record MSId(String streamId,String trackId) {
+public class FmtpAttributes {
+
+    /**
+     * 强类型参数（一个类型只能出现一次）
+     */
+    private final Map<Class<? extends FmtpParam>, FmtpParam> typedParams =
+            new LinkedHashMap<>();
+
+
+
 }

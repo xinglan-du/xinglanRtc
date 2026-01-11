@@ -30,9 +30,10 @@ public class SetupLineParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         Setup setup = new Setup(SetupType.fromValue(value));
         mediaDescription.setSetup(setup);
+        return true;
     }
 
 }

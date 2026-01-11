@@ -33,6 +33,11 @@ public class MediaExpandParser extends MediaLineParser {
         addParser(new MIdLineParser());
         addParser(new ExtMapLineParser());
         addParser(new MediaDirectionLineParser());
+        addParser(new MSidLineParser());
+        addParser(new RtcpMuxLineParser());
+        addParser(new RtcpRsizeLineParser());
+        addParser(new RtpMapLineParser());
+        addParser(new RtcpFbLineParser());
     }
 
     public static void addParser(MediaLineParser mediaLineParser) {
@@ -50,7 +55,7 @@ public class MediaExpandParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         //扩展需要重新进行分组处理
         int i = value.indexOf(":");
         String expandKey;
@@ -65,9 +70,11 @@ public class MediaExpandParser extends MediaLineParser {
 
         MediaLineParser mediaLineParser = parsers.get(expandKey);
         if (mediaLineParser == null) {
-            return;
+            return false;
         }
         mediaLineParser.onParse(mediaDescription, expandKey, expandValue);
+
+        return true;
     }
 
 

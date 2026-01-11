@@ -29,10 +29,11 @@ public class MIdLineParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         MId mid = new MId();
         mid.setId(value);
         mediaDescription.setMId(mid);
+        return true;
     }
 
 }

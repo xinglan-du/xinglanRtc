@@ -30,10 +30,11 @@ public class FingerprintLineParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         String[] s = value.trim().split(" ");
         Fingerprint fingerprint = new Fingerprint(SecurityType.fromValue(s[0]), s[1]);
         mediaDescription.setFingerprint(fingerprint);
+        return true;
     }
 
 }

@@ -18,4 +18,5 @@ import lombok.Data;
  **/
 @Data
 public abstract class Codec {
+
 }

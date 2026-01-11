@@ -39,11 +39,11 @@ public class MediaParser {
         }
     }
 
-    public static void parse(MediaDescription mediaDescription, String line) {
+    public static boolean parse(MediaDescription mediaDescription, String line) {
         MediaLineParser parser = parsers.get(line.substring(0, 2));
         if (parser == null) {
-            return;
+            return false;
         }
-        parser.onParse(mediaDescription, line);
+        return parser.onParse(mediaDescription, line);
     }
 }

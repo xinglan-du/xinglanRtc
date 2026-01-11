@@ -31,14 +31,14 @@ public abstract class MediaLineParser {
      * @param sessionDescription 表示会话描述的对象，用于存储或更新解析后的SDP信息
      * @param line               SDP中的一行内容，包含键和值的完整字符串
      */
-    public void onParse(MediaDescription mediaDescription, String line) {
+    public boolean onParse(MediaDescription mediaDescription, String line) {
         String key = line.substring(0, 2).trim();
         String value = line.substring(2).trim();
-        parse(mediaDescription, key, value);
+        return parse(mediaDescription, key, value);
     }
 
-    public void onParse(MediaDescription mediaDescription, String key, String value) {
-        parse(mediaDescription, key, value);
+    public boolean onParse(MediaDescription mediaDescription, String key, String value) {
+        return parse(mediaDescription, key, value);
     }
 
     /**
@@ -48,6 +48,6 @@ public abstract class MediaLineParser {
      * @param key                表示 SDP 属性的键（例如 SDP 行的前缀标识符，如 "v=" 或 "o="）
      * @param value              表示键对应的值（例如 SDP 行中键的具体内容）
      */
-    abstract protected void parse(MediaDescription mediaDescription, String key, String value);
+    abstract protected boolean parse(MediaDescription mediaDescription, String key, String value);
 
 }

@@ -1,14 +1,16 @@
 package cn.duxinglan.media.signaling.sdp;
 
+import cn.duxinglan.media.impl.sdp.IceInfo;
 import cn.duxinglan.media.signaling.sdp.codec.VideoCodec;
 import cn.duxinglan.media.signaling.sdp.media.*;
+import cn.duxinglan.media.signaling.sdp.rtp.RtpPayload;
 import cn.duxinglan.media.signaling.sdp.ssrc.SSRC;
-import cn.duxinglan.media.impl.sdp.IceInfo;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -64,9 +66,23 @@ public class MediaDescription {
     private RtcpMux rtcpMux;
 
     /**
+     * 表示是否启用 RTCP 缩减大小（Reduced-Sized RTCP）。
+     * <p>
+     * RTCP 缩减大小是一种优化模式，其特点是减少 RTCP 报文的发送频率和大小，
+     * 从而节约带宽资源。在实时通信中，启用 RTCP 缩减大小可以提高传输效率，特别是在网络条件较差的情况下。
+     * <p>
+     * 此变量用于标志是否启用了这一功能：
+     * - 如果值为 true，则表明启用了 RTCP 缩减大小；
+     * - 如果值为 false，则不启用。
+     */
+    private RtcpRsize rtcpRsize;
+
+    /**
      * 编码器列表
      */
     protected List<VideoCodec> codecs;
+
+    private Map<Integer, RtpPayload> rtpPayloads = new LinkedHashMap<>();
 
 
     private List<SSRC> ssrcList = new ArrayList<>();
@@ -107,5 +123,9 @@ public class MediaDescription {
 
     public void addExtMap(ExtMap extMap) {
         this.extMap.put(extMap.getKey(), extMap);
+    }
+
+    public void addRtpPayload(RtpPayload rtpPayload) {
+        rtpPayloads.put(rtpPayload.getPayloadType(), rtpPayload);
     }
 }

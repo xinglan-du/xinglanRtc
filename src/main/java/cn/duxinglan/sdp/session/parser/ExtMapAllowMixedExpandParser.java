@@ -32,11 +32,13 @@ public class ExtMapAllowMixedExpandParser extends SessionLineParser {
     }
 
     @Override
-    protected void parse(SessionDescription sessionDescription, String key, String value) {
+    protected boolean parse(SessionDescription sessionDescription, String key, String value) {
         boolean allowMixed = false;
         if (KEY.equals(value)) {
             allowMixed = true;
         }
         sessionDescription.setExtMapAllowMixed(new ExtMapAllowMixed(allowMixed));
+
+        return true;
     }
 }

@@ -46,7 +46,7 @@ public class SessionExpandParser extends SessionLineParser {
     }
 
     @Override
-    protected void parse(SessionDescription sessionDescription, String key, String value) {
+    protected boolean parse(SessionDescription sessionDescription, String key, String value) {
         //扩展需要重新进行分组处理
         int i = value.indexOf(":");
         String expandKey;
@@ -61,8 +61,8 @@ public class SessionExpandParser extends SessionLineParser {
 
         SessionLineParser sessionLineParser = parsers.get(expandKey);
         if (sessionLineParser == null) {
-            return;
+            return false;
         }
-        sessionLineParser.onParse(sessionDescription, expandKey, expandValue);
+        return sessionLineParser.onParse(sessionDescription, expandKey, expandValue);
     }
 }

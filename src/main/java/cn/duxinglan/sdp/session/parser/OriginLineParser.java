@@ -31,10 +31,11 @@ public class OriginLineParser extends SessionLineParser {
     }
 
     @Override
-    protected void parse(SessionDescription sessionDescription, String key, String value) {
+    protected boolean parse(SessionDescription sessionDescription, String key, String value) {
         String[] split = value.split(" ");
         Origin origin = new Origin(split[0], NumberUtils.toLong(split[1]), NumberUtils.toInt(split[2]), NetworkType.fromValue(split[3]), AddressType.fromValue(split[4]), split[5]);// 默认值为 1
         sessionDescription.setOrigin(origin);
+        return true;
     }
 
 

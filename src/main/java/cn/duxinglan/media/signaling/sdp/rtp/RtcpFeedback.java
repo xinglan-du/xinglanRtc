@@ -1,4 +1,6 @@
-package cn.duxinglan.media.signaling.sdp.media;
+package cn.duxinglan.media.signaling.sdp.rtp;
+
+import lombok.Data;
 
 /**
  *
@@ -14,5 +16,10 @@ package cn.duxinglan.media.signaling.sdp.media;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record MSId(String streamId,String trackId) {
+@Data
+public class RtcpFeedback {
+
+    private RtcpFeedbackType rtcpFeedbackType;
+
+    private RtcpFeedbackParam rtcpFeedbackParam;
 }

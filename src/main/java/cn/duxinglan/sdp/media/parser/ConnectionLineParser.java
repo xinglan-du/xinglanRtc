@@ -30,10 +30,11 @@ public class ConnectionLineParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         String[] split = value.split(" ");
         Connection connection = new Connection(NetworkType.fromValue(split[0]), IpVerType.fromValue(split[1]), split[2]);
         mediaDescription.setConnection(connection);
+        return true;
     }
 
 }

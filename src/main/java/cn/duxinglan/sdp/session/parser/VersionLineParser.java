@@ -29,9 +29,10 @@ public class VersionLineParser extends SessionLineParser {
     }
 
     @Override
-    protected void parse(SessionDescription sessionDescription, String key, String value) {
+    protected boolean parse(SessionDescription sessionDescription, String key, String value) {
         Version version = new Version(NumberUtils.toInt(value, 1));
         sessionDescription.setVersion(version);
+        return true;
     }
 
 

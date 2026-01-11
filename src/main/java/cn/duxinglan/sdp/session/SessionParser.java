@@ -41,11 +41,11 @@ public class SessionParser {
         parsers.put(sessionLineParser.getLineStartWith(), sessionLineParser);
     }
 
-    public static void parse(SessionDescription sessionDescription, String line) {
+    public static boolean parse(SessionDescription sessionDescription, String line) {
         SessionLineParser parser = parsers.get(line.substring(0, 2));
         if (parser == null) {
-            return;
+            return false;
         }
-        parser.onParse(sessionDescription, line);
+        return parser.onParse(sessionDescription, line);
     }
 }

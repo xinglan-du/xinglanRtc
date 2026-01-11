@@ -30,10 +30,11 @@ public class MediaInfoLineParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         String[] split = value.split(" ");
         Info info = new Info(MediaInfoType.fromValue(split[0]), Integer.parseInt(split[1]), MediaTransportType.fromValue(split[2]));
         mediaDescription.setInfo(info);
+        return true;
     }
 
 

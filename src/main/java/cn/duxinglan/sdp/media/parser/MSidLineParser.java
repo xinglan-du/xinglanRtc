@@ -1,7 +1,7 @@
 package cn.duxinglan.sdp.media.parser;
 
 import cn.duxinglan.media.signaling.sdp.MediaDescription;
-import cn.duxinglan.media.signaling.sdp.media.ExtMap;
+import cn.duxinglan.media.signaling.sdp.media.MSId;
 import cn.duxinglan.sdp.media.MediaLineParser;
 
 /**
@@ -18,10 +18,9 @@ import cn.duxinglan.sdp.media.MediaLineParser;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public class ExtMapLineParser extends MediaLineParser {
+public class MSidLineParser extends MediaLineParser {
 
-    public static final String KEY = "extmap";
-
+    public static final String KEY = "msid";
 
     @Override
     public String[] getLineStartWith() {
@@ -31,12 +30,9 @@ public class ExtMapLineParser extends MediaLineParser {
     @Override
     protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         String[] s = value.split(" ");
-        ExtMap extMap = new ExtMap();
-        extMap.setKey(s[0]);
-        extMap.setValue(s[1]);
-        mediaDescription.addExtMap(extMap);
+        MSId msId = new MSId(s[0], s[1]);
+        mediaDescription.setMsid(msId);
         return true;
-
     }
 
 }

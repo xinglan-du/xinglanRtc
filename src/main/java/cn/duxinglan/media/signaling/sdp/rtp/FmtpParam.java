@@ -1,4 +1,4 @@
-package cn.duxinglan.media.signaling.sdp.media;
+package cn.duxinglan.media.signaling.sdp.rtp;
 
 /**
  *
@@ -14,5 +14,18 @@ package cn.duxinglan.media.signaling.sdp.media;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record MSId(String streamId,String trackId) {
+public interface FmtpParam {
+
+    /**
+     * SDP fmtp key，例如：
+     * profile-id
+     * packetization-mode
+     */
+    String key();
+
+    /**
+     * SDP fmtp value，例如：
+     * 0 / 1 / 42e01f
+     */
+    String value();
 }

@@ -34,14 +34,15 @@ public class GroupExpandParser extends SessionLineParser {
     }
 
     @Override
-    protected void parse(SessionDescription sessionDescription, String key, String value) {
+    protected boolean parse(SessionDescription sessionDescription, String key, String value) {
         String[] split = value.split(" ");
         if (!split[0].equals(BUNDLE_KEY)) {
             log.error("无法解析:{}", value);
-            return;
+            return false;
         }
         Bundle bundle = new Bundle();
         bundle.setMid(Arrays.stream(split).skip(1).toList());
         sessionDescription.setBundle(bundle);
+        return true;
     }
 }

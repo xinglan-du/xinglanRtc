@@ -28,9 +28,10 @@ public class SessionNameLineParser extends SessionLineParser {
     }
 
     @Override
-    protected void parse(SessionDescription sessionDescription, String key, String value) {
+    protected boolean parse(SessionDescription sessionDescription, String key, String value) {
         SessionName sessionName = new SessionName(value);
         sessionDescription.setSessionName(sessionName);
+        return true;
     }
 
 

@@ -32,9 +32,10 @@ public class MediaDirectionLineParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         MediaDirection mediaDirection = new MediaDirection(MediaDirectionType.fromValue(value));
         mediaDescription.setMediaDirection(mediaDirection);
+        return true;
     }
 
 }

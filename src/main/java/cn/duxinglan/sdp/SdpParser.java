@@ -4,6 +4,7 @@ import cn.duxinglan.media.signaling.sdp.MediaDescription;
 import cn.duxinglan.media.signaling.sdp.SessionDescription;
 import cn.duxinglan.sdp.media.MediaParser;
 import cn.duxinglan.sdp.session.SessionParser;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
+@Slf4j
 public class SdpParser {
 
     public static SessionDescription parse(String sdp) {
@@ -41,15 +43,19 @@ public class SdpParser {
                 sessionDescription.addMediaDescription(currentMediaDescription);
                 state = SdpParseState.MEDIA;
             }
+            boolean isResolve = false;
             switch (state) {
                 case SESSION:
-                    SessionParser.parse(sessionDescription, line);
+                    isResolve =  SessionParser.parse(sessionDescription, line);
                     break;
                 case MEDIA:
-                    MediaParser.parse(currentMediaDescription, line);
+                    isResolve =  MediaParser.parse(currentMediaDescription, line);
                     break;
             }
 
+            if (!isResolve) {
+                log.info("当前数据行未解析:{}",line);
+            }
         }
 
 

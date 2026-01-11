@@ -31,7 +31,7 @@ public class IceInfoConnectionLineParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         IceInfo iceInfo = mediaDescription.getIceInfo();
         if (iceInfo == null) {
             iceInfo = new IceInfo();
@@ -42,6 +42,7 @@ public class IceInfoConnectionLineParser extends MediaLineParser {
             case PWS -> iceInfo.setPwd(value);
             case OPTIONS -> iceInfo.setOptions(value);
         }
+        return true;
     }
 
 }

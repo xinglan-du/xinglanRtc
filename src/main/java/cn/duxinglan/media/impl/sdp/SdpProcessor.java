@@ -121,7 +121,8 @@ public class SdpProcessor {
         if (mediaDescriptionSpec.isSendOnly()) {
             Optional<MediaDescriptionSpec.SSRCDescribe> senderOpt = mediaDescriptionSpec.getSender();
             senderOpt.ifPresent(ssrcDescribe -> {
-                mediaDescription.setMsid(new MSId(ssrcDescribe.getStreamId()));
+                //TODO
+                mediaDescription.setMsid(new MSId(ssrcDescribe.getStreamId(),null));
                 mediaDescription.addSSRC(new SSRC(ssrcDescribe.getPrimaryMediaStream(), ssrcDescribe.getRtxMediaStream(), ssrcDescribe.getCname()));
             });
         }
@@ -181,7 +182,7 @@ public class SdpProcessor {
                 msid = String.format("stream-%s track-%s", mediaVideoDescription.getMsid().streamId(), mediaVideoDescription.getMId());
                 sb.append("a=msid:").append(msid).append("\r\n");
             }
-            if (mediaVideoDescription.getRtcpMux().enabled()) {
+            if (mediaVideoDescription.getRtcpMux() != null && mediaVideoDescription.getRtcpMux().enabled()) {
                 sb.append("a=rtcp-mux").append("\r\n");
             }
             sb.append(CacheModel.getLocalCandidate().toSdpStr()).append("\r\n");

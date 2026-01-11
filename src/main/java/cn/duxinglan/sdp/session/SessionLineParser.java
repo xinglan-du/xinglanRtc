@@ -31,14 +31,14 @@ public abstract class SessionLineParser {
      * @param sessionDescription 表示会话描述的对象，用于存储或更新解析后的SDP信息
      * @param line               SDP中的一行内容，包含键和值的完整字符串
      */
-    public void onParse(SessionDescription sessionDescription, String line) {
+    public boolean onParse(SessionDescription sessionDescription, String line) {
         String key = line.substring(0, 2).trim();
         String value = line.substring(2).trim();
-        parse(sessionDescription, key, value);
+        return parse(sessionDescription, key, value);
     }
 
-    public void onParse(SessionDescription sessionDescription, String key, String value) {
-        parse(sessionDescription, key, value);
+    public boolean onParse(SessionDescription sessionDescription, String key, String value) {
+        return parse(sessionDescription, key, value);
     }
 
     /**
@@ -48,6 +48,6 @@ public abstract class SessionLineParser {
      * @param key                表示 SDP 属性的键（例如 SDP 行的前缀标识符，如 "v=" 或 "o="）
      * @param value              表示键对应的值（例如 SDP 行中键的具体内容）
      */
-    abstract protected void parse(SessionDescription sessionDescription, String key, String value);
+    abstract protected boolean parse(SessionDescription sessionDescription, String key, String value);
 
 }

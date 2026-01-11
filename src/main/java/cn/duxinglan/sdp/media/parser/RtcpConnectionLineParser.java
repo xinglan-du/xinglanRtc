@@ -31,10 +31,11 @@ public class RtcpConnectionLineParser extends MediaLineParser {
     }
 
     @Override
-    protected void parse(MediaDescription mediaDescription, String key, String value) {
+    protected boolean parse(MediaDescription mediaDescription, String key, String value) {
         String[] split = value.split(" ");
         RtcpConnection rtcpConnection = new RtcpConnection(Integer.parseInt(split[0]), NetworkType.fromValue(split[1]), IpVerType.fromValue(split[2]), split[3]);
         mediaDescription.setRtcpConnection(rtcpConnection);
+        return true;
     }
 
 }

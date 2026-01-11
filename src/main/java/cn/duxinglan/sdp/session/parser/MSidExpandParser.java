@@ -33,7 +33,7 @@ public class MSidExpandParser extends SessionLineParser {
     }
 
     @Override
-    protected void parse(SessionDescription sessionDescription, String key, String value) {
+    protected boolean parse(SessionDescription sessionDescription, String key, String value) {
         String[] parts = value.split(" ");
 
         String type = parts[0];
@@ -42,5 +42,6 @@ public class MSidExpandParser extends SessionLineParser {
 
         MSid mSid = new MSid(MediaStreamType.fromValue(type), streamId, trackId);
         sessionDescription.setMSid(mSid);
+        return true;
     }
 }
