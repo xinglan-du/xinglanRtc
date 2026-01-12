@@ -43,18 +43,13 @@ public class SdpParser {
                 sessionDescription.addMediaDescription(currentMediaDescription);
                 state = SdpParseState.MEDIA;
             }
-            boolean isResolve = false;
-            switch (state) {
-                case SESSION:
-                    isResolve =  SessionParser.parse(sessionDescription, line);
-                    break;
-                case MEDIA:
-                    isResolve =  MediaParser.parse(currentMediaDescription, line);
-                    break;
-            }
+            boolean isResolve = switch (state) {
+                case SESSION -> SessionParser.parse(sessionDescription, line);
+                case MEDIA -> MediaParser.parse(currentMediaDescription, line);
+            };
 
             if (!isResolve) {
-                log.info("当前数据行未解析:{}",line);
+                log.warn("当前数据行未解析:{}", line);
             }
         }
 

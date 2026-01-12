@@ -3,6 +3,7 @@ package cn.duxinglan.media.signaling.sdp.rtp;
 import lombok.Data;
 
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -84,15 +85,13 @@ public class RtpPayload {
      */
     private int clockRate;             // 90000 / 48000
 
-    private PayloadRole role;           // PRIMARY / RTX / RED / FEC
-
 
     /* 音频数据*/
     private Integer channels;          // audio only (e.g. OPUS/48000/2)
 
     /* ========= 能力声明 ========= */
 
-    private FmtpAttributes fmtp;        // 强类型 + 扩展
+    private FmtpAttributes fmtp;
     private Set<RtcpFeedback> rtcpFeedbacks;
 
 
@@ -102,4 +101,15 @@ public class RtpPayload {
         }
         rtcpFeedbacks.add(rtcpFeedback);
     }
+
+    public PayloadRole role() {
+        return switch (encodingName.toLowerCase(Locale.ROOT)) {
+            case "rtx" -> PayloadRole.RTX;
+            case "red" -> PayloadRole.RED;
+            case "ulpfec", "flexfec" -> PayloadRole.FEC;
+            default -> PayloadRole.PRIMARY;
+        };
+    }
+
+
 }

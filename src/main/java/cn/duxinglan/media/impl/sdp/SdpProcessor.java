@@ -122,8 +122,14 @@ public class SdpProcessor {
             Optional<MediaDescriptionSpec.SSRCDescribe> senderOpt = mediaDescriptionSpec.getSender();
             senderOpt.ifPresent(ssrcDescribe -> {
                 //TODO
-                mediaDescription.setMsid(new MSId(ssrcDescribe.getStreamId(),null));
-                mediaDescription.addSSRC(new SSRC(ssrcDescribe.getPrimaryMediaStream(), ssrcDescribe.getRtxMediaStream(), ssrcDescribe.getCname()));
+                mediaDescription.setMsid(new MSId(ssrcDescribe.getStreamId(), null));
+                SSRC ssrc = new SSRC();
+                ssrc.setPrimaryMediaStream(ssrcDescribe.getPrimaryMediaStream());
+                ssrc.setRtxMediaStream(ssrcDescribe.getRtxMediaStream());
+                ssrc.setCname(ssrcDescribe.getCname());
+
+
+                mediaDescription.addSSRC(ssrc);
             });
         }
 

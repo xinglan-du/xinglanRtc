@@ -30,17 +30,18 @@ public class SSRC {
     public static final String GROUP_KEY = "ssrc-group";
     private static final String FID_START_WITH = "FID";
 
+    private long ssrc;
+
     private long primaryMediaStream;
 
     private long rtxMediaStream;
 
     private String cname;
 
-    public SSRC(long primaryMediaStream, long rtxMediaStream, String cname) {
-        this.primaryMediaStream = primaryMediaStream;
-        this.rtxMediaStream = rtxMediaStream;
-        this.cname = cname;
-    }
+    private String streamId;
+
+    private String trackId;
+
 
     /**
      * 从 SDP 文本中提取并转换为 SSRC 实例
@@ -63,8 +64,12 @@ public class SSRC {
         if (cname == null) {
             cname = extractCname(sdp, rtx);
         }
+        SSRC ssrc = new SSRC();
+        ssrc.setPrimaryMediaStream(primary);
+        ssrc.setRtxMediaStream(rtx);
+        ssrc.setCname(cname);
 
-        return new SSRC(primary, rtx, cname);
+        return ssrc;
     }
 
     private static String extractCname(String sdp, long ssrc) {
@@ -75,4 +80,6 @@ public class SSRC {
         }
         return null;
     }
+
+
 }

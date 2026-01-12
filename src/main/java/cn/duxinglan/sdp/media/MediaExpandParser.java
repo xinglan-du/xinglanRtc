@@ -38,6 +38,9 @@ public class MediaExpandParser extends MediaLineParser {
         addParser(new RtcpRsizeLineParser());
         addParser(new RtpMapLineParser());
         addParser(new RtcpFbLineParser());
+        addParser(new FmtpLineParser());
+        addParser(new SsrcGroupLineParser());
+        addParser(new SsrcLineParser());
     }
 
     public static void addParser(MediaLineParser mediaLineParser) {

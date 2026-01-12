@@ -1,4 +1,9 @@
-package cn.duxinglan.media.signaling.sdp.rtp;
+package cn.duxinglan.media.signaling.sdp.ssrc;
+
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -14,7 +19,16 @@ package cn.duxinglan.media.signaling.sdp.rtp;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public enum PayloadRole {
+@Data
+public class SsrcGroup {
 
-    RTX, RED, FEC, PRIMARY
+    private SsrcGroupType ssrcGroupType;
+
+    private List<Long> ssrcList = new ArrayList<>();
+
+
+    public void addSsrc(long ssrc) {
+        this.ssrcList.add(ssrc);
+    }
+
 }

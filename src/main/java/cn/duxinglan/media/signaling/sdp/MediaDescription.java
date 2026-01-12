@@ -5,6 +5,7 @@ import cn.duxinglan.media.signaling.sdp.codec.VideoCodec;
 import cn.duxinglan.media.signaling.sdp.media.*;
 import cn.duxinglan.media.signaling.sdp.rtp.RtpPayload;
 import cn.duxinglan.media.signaling.sdp.ssrc.SSRC;
+import cn.duxinglan.media.signaling.sdp.ssrc.SsrcGroup;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -82,10 +83,45 @@ public class MediaDescription {
      */
     protected List<VideoCodec> codecs;
 
+    /**
+     * 表示媒体会话中 RTP 负载类型的映射关系。
+     * <p>
+     * 此变量用于存储所有的 RTP 负载类型及其相关属性信息，键为整型的负载类型标识符，
+     * 值为对应的 {@link RtpPayload} 对象。其中：
+     * 1. 键（Integer）表示负载类型编号（payload type）。
+     * 2. 值（RtpPayload）包含了负载类型的详细信息，例如编码名称、时钟速率、媒体类型等。
+     * <p>
+     * 应用场景：
+     * - 在会话协商阶段，用于匹配双方支持的负载类型。
+     * - 在媒体传输阶段，用于解析或构造 RTP 数据包中的负载类型字段。
+     * <p>
+     * 注意：
+     * - 此映射实现了 {@link LinkedHashMap}，以确保按添加顺序存储条目。
+     * - 动态负载类型（通常范围为 96-127）需要在会话协商中显式声明。
+     */
     private Map<Integer, RtpPayload> rtpPayloads = new LinkedHashMap<>();
 
+    /**
+     * 表示媒体流的 SSRC (同步源) 列表。
+     * 每个 SSRC 实例包含主媒体流的标识、重传媒体流的标识以及 cname 信息。
+     * <p>
+     * 该变量通常与 RTP/RTCP 流的标识相关联，用于区分不同的媒体流。
+     * <p>
+     * 在 SDP 协议解析和媒体流描述中，该列表可能被用于记录和管理相关媒体流的 SSRC 信息。
+     */
+    private Map<Long, SSRC> ssrcMap = new LinkedHashMap<>();
 
-    private List<SSRC> ssrcList = new ArrayList<>();
+    /**
+     * 表示媒体描述中的SSRC组集合。
+     * <p>
+     * SSRC组的集合用于存储多个SSRC组，它们可以协作描述多媒体会话中相关联的SSRC流。
+     * 每个SSRC组定义了一组具有特定关系（例如协同处理、分层编码等）的SSRC标识符。
+     * 这种分组机制通常用于描述SRTP(Secure Real-time Transport Protocol)中通过RTP扩展实现的组合关系。
+     * <p>
+     * 该字段通过 `addSsrcGroup` 方法向列表中添加新的SSRC组。
+     * 适用于需要处理多路复用媒体流或复杂的RTP关系的场景，例如视频会议、音视频流切片等。
+     */
+    private List<SsrcGroup> ssrcGroups = new ArrayList<>();
 
 
     /**
@@ -114,10 +150,8 @@ public class MediaDescription {
     }
 
     public void addSSRC(SSRC ssrc) {
-        if (ssrcList == null) {
-            return;
-        }
-        this.ssrcList.add(ssrc);
+        ssrcMap.put(ssrc.getSsrc(), ssrc);
+
     }
 
 
@@ -127,5 +161,13 @@ public class MediaDescription {
 
     public void addRtpPayload(RtpPayload rtpPayload) {
         rtpPayloads.put(rtpPayload.getPayloadType(), rtpPayload);
+    }
+
+    public void addSsrcGroup(SsrcGroup ssrcGroup) {
+        this.ssrcGroups.add(ssrcGroup);
+    }
+
+    public List<SSRC> getSsrcList() {
+        return ssrcMap.values().stream().toList();
     }
 }

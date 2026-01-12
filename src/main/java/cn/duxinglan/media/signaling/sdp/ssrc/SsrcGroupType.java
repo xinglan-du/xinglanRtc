@@ -1,10 +1,4 @@
-package cn.duxinglan.media.signaling.sdp.rtp;
-
-import lombok.Data;
-
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
+package cn.duxinglan.media.signaling.sdp.ssrc;
 
 /**
  *
@@ -20,22 +14,24 @@ import java.util.Map;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-@Data
-public class FmtpAttributes {
+public enum SsrcGroupType {
 
+    FID("FID"),
 
-    /**
-     * 用来存放apt相关数据
-     */
-    private Integer associatedPayloadType;
+    ;
 
-    private final Map<String, String> params =
-            new LinkedHashMap<>();
+    public final String value;
 
-
-    public void putParam(String key, String value) {
-        params.put(key.toLowerCase(Locale.ROOT), value);
+    SsrcGroupType(String value) {
+        this.value = value;
     }
 
-
+    public static SsrcGroupType fromValue(String value) {
+        for (SsrcGroupType ssrcGroupType : SsrcGroupType.values()) {
+            if (ssrcGroupType.value.equals(value)) {
+                return ssrcGroupType;
+            }
+        }
+        return null;
+    }
 }
