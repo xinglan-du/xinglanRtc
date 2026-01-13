@@ -154,25 +154,18 @@ public class WebrtcMediaConsumer implements IConsumer {
                     sendTimeNs,
                     rtpPacket
             );
-
-
         } else {
-
             RtpPacket rtpPacket = timerRtpPacket.rtpPacket();
-
             cached = new CachedRtpPacket(rtpPacket.getSequenceNumber(),
                     0,
                     rtpPacket);
         }
 
 
-        //将数据添加
-        sendQueue.add(cached);
-        //TODO 这里需要做缓存的 但是暂时没想道如何清空缓存 遗留这个问题
-        //TODO 缓存的时间为CACHE_WINDOW_NS
-//        seqMap.put(cached.getSeq(), cached);
-
-
+        // PriorityQueue 不是线程安全的，必须同步访问
+        synchronized (sendQueue) {
+            sendQueue.add(cached);
+        }
     }
 
     @Override
@@ -223,8 +216,8 @@ public class WebrtcMediaConsumer implements IConsumer {
     public void onRtcpPacket(RtcpPacket packet, InetSocketAddress remoteAddress) {
         if (packet instanceof PsFbRtcpPacket psFbRtcpPacket) {
             if (this.mediaControl != null) {
-                log.info("消费者：{}；请求关键帧：{}",primarySsrc,this.mediaControl.getPrimarySsrc());
-                this.mediaControl.onPli();
+                log.debug("消费者：{}；请求关键帧：{}", primarySsrc, this.mediaControl.getPrimarySsrc());
+                this.mediaControl.onPLI();
             }
         }
 
@@ -249,13 +242,15 @@ public class WebrtcMediaConsumer implements IConsumer {
 
 
     public SenderRtpPacket pollReady(long nowNs) {
-        CachedRtpPacket head = sendQueue.peek();
-        if (head != null && head.getSendTimeNs() <= nowNs) {
-            sendQueue.poll();
-            lastRtpTimestamp = head.getPacket().getTimestamp();
-            packetCount++;
-            octetCount += head.getPacket().getPayload().readableBytes();
-            return new SenderRtpPacket(primarySsrc, head.getPacket());
+        synchronized (sendQueue) {
+            CachedRtpPacket head = sendQueue.peek();
+            if (head != null && head.getSendTimeNs() <= nowNs) {
+                sendQueue.poll();
+                lastRtpTimestamp = head.getPacket().getTimestamp();
+                packetCount++;
+                octetCount += head.getPacket().getPayload().readableBytes();
+                return new SenderRtpPacket(primarySsrc, head.getPacket());
+            }
         }
         return null;
     }

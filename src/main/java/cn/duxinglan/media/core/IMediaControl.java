@@ -16,7 +16,7 @@ package cn.duxinglan.media.core;
  **/
 public interface IMediaControl {
 
-    void onPli();
+    void onPLI();
 
     long getPrimarySsrc();
 }

@@ -46,7 +46,9 @@ public class SrtpContextFactory {
      * 注意：
      * - 必须由外部逻辑确保上下文的正确初始化和清理，以避免内存泄漏或冗余存储。
      */
-    private Map<Long, SRtpContext> srtpContextMap = new ConcurrentHashMap<>();
+    private Map<Long, SRtpContext> srtpClientContextMap = new ConcurrentHashMap<>();
+    private Map<Long, SRtpContext> srtpServerContextMap = new ConcurrentHashMap<>();
+
 
     /**
      * 保存每个 SSRC（同步信源标识）对应的 SRtcpContext 映射表。
@@ -63,7 +65,8 @@ public class SrtpContextFactory {
      * - 客户端或服务器分别根据 SSRC 查找已有的 SRtcpContext，或为新的 SSRC 创建并存储相关上下文。
      * - 支持动态的上下文管理以适应实时音视频传输的需求。
      */
-    private Map<Long, SRtcpContext> srtcpContextMap = new ConcurrentHashMap<>();
+    private Map<Long, SRtcpContext> srtcpClientContextMap = new ConcurrentHashMap<>();
+    private Map<Long, SRtcpContext> srtcpServerContextMap = new ConcurrentHashMap<>();
 
     /**
      * 表示 SRTP (安全实时传输协议) 配置类型的变量。
@@ -168,7 +171,7 @@ public class SrtpContextFactory {
 
 
     public SRtcpContext getClientSRtcpContext(long ssrc) {
-        return srtcpContextMap.computeIfAbsent(
+        return srtcpClientContextMap.computeIfAbsent(
                 ssrc,
                 k -> {
                     try {
@@ -181,7 +184,7 @@ public class SrtpContextFactory {
     }
 
     public SRtcpContext getServerSRtcpContext(long ssrc)  {
-        return srtcpContextMap.computeIfAbsent(
+        return srtcpServerContextMap.computeIfAbsent(
                 ssrc,
                 k -> {
                     try {
@@ -196,7 +199,7 @@ public class SrtpContextFactory {
 
 
     public SRtpContext getClientSrtpContext(long ssrc) {
-        return srtpContextMap.computeIfAbsent(
+        return srtpClientContextMap.computeIfAbsent(
                 ssrc,
                 k -> {
                     try {
@@ -210,7 +213,7 @@ public class SrtpContextFactory {
     }
 
     public SRtpContext getServerSrtpContext(long ssrc) {
-        return srtpContextMap.computeIfAbsent(
+        return srtpServerContextMap.computeIfAbsent(
                 ssrc,
                 k -> {
                     try {

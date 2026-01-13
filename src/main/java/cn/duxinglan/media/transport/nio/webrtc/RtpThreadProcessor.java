@@ -47,12 +47,11 @@ public class RtpThreadProcessor {
     public RtpThreadProcessor(WebrtcUdpServer webrtcUdpServer) {
         this.webrtcUdpServer = webrtcUdpServer;
         scheduler = Executors.newScheduledThreadPool(1);
-        long tickMs = 10;
         scheduler.scheduleAtFixedRate(() -> {
             for (RtpPackProcessor processor : rtpPackProcessorHashMap.values()) {
                 processor.scheduleConsumerSending(System.nanoTime());
             }
-        }, 0, tickMs, TimeUnit.MILLISECONDS);
+        }, 0, 1, TimeUnit.MILLISECONDS);
 
         scheduler.scheduleAtFixedRate(() -> {
             for (RtpPackProcessor processor : rtpPackProcessorHashMap.values()) {

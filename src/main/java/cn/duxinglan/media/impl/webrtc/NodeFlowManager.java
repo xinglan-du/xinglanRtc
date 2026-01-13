@@ -94,7 +94,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
                         continue;
                     }
                     ssrc = psFbRtcpPacket.getMediaSsrc();
-                    log.info("接收到申请关键帧{}", psFbRtcpPacket);
+                    log.debug("接收到申请关键帧{}", psFbRtcpPacket);
                 }
                 case ReceiverReportRtcpPacket receiverReportRtcpPacket -> {
                     log.debug("暂时不处理接受处理");
@@ -173,7 +173,6 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
 
 
     public void sendReadyRtcpPackets(long nowNs) {
-        List<RtcpPacket> rtcpPackets = new ArrayList<>();
         for (Map.Entry<Long, WebrtcMediaConsumer> longWebrtcMediaConsumerEntry : rtpMediaConsumer.entrySet()) {
             Long key = longWebrtcMediaConsumerEntry.getKey();
             WebrtcMediaConsumer webrtcMediaConsumer = longWebrtcMediaConsumerEntry.getValue();
@@ -183,6 +182,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
             if (webrtcMediaConsumer.getTimeState() != WebrtcMediaConsumer.TimeState.RUNNING) {
                 continue;
             }
+            List<RtcpPacket> rtcpPackets = new ArrayList<>();
             SenderReportRtcpPacket senderReportRtcpPacket = webrtcMediaConsumer.buildSenderReportRtcpPacket(nowNs);
             SdesRtcpPacket sdesRtcpPacket = webrtcMediaConsumer.buildSdesRtcpPacket();
             if (senderReportRtcpPacket != null) {
@@ -191,8 +191,9 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
             if (sdesRtcpPacket != null) {
                 rtcpPackets.add(sdesRtcpPacket);
             }
-            if (rtcpPackets.isEmpty()) {
-                continue;
+
+            if (!rtcpPackets.isEmpty()) {
+                mediaTransport.sendRtcpPackets(rtcpPackets);
             }
         }
 
@@ -205,6 +206,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
             }
 
 
+            List<RtcpPacket> rtcpPackets = new ArrayList<>();
             ReceiverReportRtcpPacket receiverReportRtcpPacket = webrtcMediaProducer.consumeReceiverReport(nowNs);
             if (receiverReportRtcpPacket != null) {
                 rtcpPackets.add(receiverReportRtcpPacket);
@@ -214,10 +216,9 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
             if (psFbRtcpPacket != null) {
                 rtcpPackets.add(psFbRtcpPacket);
             }
-
-        }
-        if (!rtcpPackets.isEmpty()) {
-            mediaTransport.sendRtcpPackets(rtcpPackets);
+            if (!rtcpPackets.isEmpty()) {
+                mediaTransport.sendRtcpPackets(rtcpPackets);
+            }
         }
 
 

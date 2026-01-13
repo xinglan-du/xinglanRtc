@@ -149,7 +149,7 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
     }
 
     @Override
-    public void onPli() {
+    public void onPLI() {
         requestKeyframes.compareAndSet(false, true);
     }
 
