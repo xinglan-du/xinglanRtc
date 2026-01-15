@@ -58,7 +58,6 @@ public class CandidateLineParser extends MediaLineParser {
 
         }
         mediaDescription.addCandidate(candidate);
-
         return true;
     }
 

@@ -77,7 +77,7 @@ public class Candidate {
         if (this.priority == null) {
             calculateCandidatePriority();
         }
-        return String.format("a=candidate:%d %d %s %d %s %d typ %s", foundation, componentId, candidateTransportType.value, priority, connectionAddress, port, candidateAddressType.value);
+        return String.format("a=candidate:%s %d %s %d %s %d typ %s", foundation, componentId, candidateTransportType.value, priority, connectionAddress, port, candidateAddressType.value);
     }
 
 
