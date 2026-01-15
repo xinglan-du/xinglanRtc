@@ -1,6 +1,6 @@
-package cn.duxinglan.media.signaling.sdp;
+package cn.duxinglan.sdp.entity.media;
 
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+import cn.duxinglan.sdp.entity.type.SetupType;
 
 /**
  *
@@ -16,5 +16,6 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public record Setup(SetupType type) {
+
 }

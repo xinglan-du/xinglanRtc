@@ -1,6 +1,7 @@
 package cn.duxinglan.sdp;
 
-import cn.duxinglan.media.signaling.sdp.SessionDescription;
+import cn.duxinglan.sdp.entity.SessionDescription;
+import cn.duxinglan.sdp.parse.SdpParser;
 
 /**
  *
@@ -29,6 +30,16 @@ public class SdpTest {
             m=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126
             c=IN IP4 0.0.0.0
             a=rtcp:9 IN IP4 0.0.0.0
+            a=candidate:312432146 1 udp 2122194687 192.168.64.1 60207 typ host generation 0 network-id 1
+            a=candidate:2917354289 1 udp 2122063615 10.240.1.51 51080 typ host generation 0 network-id 3 network-cost 10
+            a=candidate:3349596158 1 udp 2121998079 172.16.0.223 51654 typ host generation 0 network-id 5 network-cost 50
+            a=candidate:3431748403 1 udp 2122265343 fd1e:c273:37cf:685f:461:27a2:489e:cdd0 50177 typ host generation 0 network-id 2
+            a=candidate:1965722208 1 udp 2122131711 2408:821b:439:7f21:159c:380:46e:cdfd 63554 typ host generation 0 network-id 4 network-cost 10
+            a=candidate:3962929798 1 tcp 1518214911 192.168.64.1 9 typ host tcptype active generation 0 network-id 1
+            a=candidate:1397333925 1 tcp 1518083839 10.240.1.51 9 typ host tcptype active generation 0 network-id 3 network-cost 10
+            a=candidate:957092714 1 tcp 1518018303 172.16.0.223 9 typ host tcptype active generation 0 network-id 5 network-cost 50
+            a=candidate:841385895 1 tcp 1518285567 fd1e:c273:37cf:685f:461:27a2:489e:cdd0 9 typ host tcptype active generation 0 network-id 2
+            a=candidate:2340445940 1 tcp 1518151935 2408:821b:439:7f21:159c:380:46e:cdfd 9 typ host tcptype active generation 0 network-id 4 network-cost 10
             a=ice-ufrag:jrN1
             a=ice-pwd:6uYHAWHR0nTOJX8qUMR3MNrM
             a=ice-options:trickle
@@ -59,6 +70,16 @@ public class SdpTest {
             m=video 9 UDP/TLS/RTP/SAVPF 96 97 103 104 107 108 109 114 115 116 117 118 39 40 45 46 98 99 100 101 119 120 49 50 123 124 125
             c=IN IP4 0.0.0.0
             a=rtcp:9 IN IP4 0.0.0.0
+            a=candidate:312432146 1 udp 2122194687 192.168.64.1 60207 typ host generation 0 network-id 1
+            a=candidate:2917354289 1 udp 2122063615 10.240.1.51 51080 typ host generation 0 network-id 3 network-cost 10
+            a=candidate:3349596158 1 udp 2121998079 172.16.0.223 51654 typ host generation 0 network-id 5 network-cost 50
+            a=candidate:3431748403 1 udp 2122265343 fd1e:c273:37cf:685f:461:27a2:489e:cdd0 50177 typ host generation 0 network-id 2
+            a=candidate:1965722208 1 udp 2122131711 2408:821b:439:7f21:159c:380:46e:cdfd 63554 typ host generation 0 network-id 4 network-cost 10
+            a=candidate:3962929798 1 tcp 1518214911 192.168.64.1 9 typ host tcptype active generation 0 network-id 1
+            a=candidate:1397333925 1 tcp 1518083839 10.240.1.51 9 typ host tcptype active generation 0 network-id 3 network-cost 10
+            a=candidate:957092714 1 tcp 1518018303 172.16.0.223 9 typ host tcptype active generation 0 network-id 5 network-cost 50
+            a=candidate:841385895 1 tcp 1518285567 fd1e:c273:37cf:685f:461:27a2:489e:cdd0 9 typ host tcptype active generation 0 network-id 2
+            a=candidate:2340445940 1 tcp 1518151935 2408:821b:439:7f21:159c:380:46e:cdfd 9 typ host tcptype active generation 0 network-id 4 network-cost 10
             a=ice-ufrag:jrN1
             a=ice-pwd:6uYHAWHR0nTOJX8qUMR3MNrM
             a=ice-options:trickle

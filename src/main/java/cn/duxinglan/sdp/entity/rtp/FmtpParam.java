@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.entity.rtp;
 
 /**
  *
@@ -16,5 +14,18 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public interface FmtpParam {
+
+    /**
+     * SDP fmtp key，例如：
+     * profile-id
+     * packetization-mode
+     */
+    String key();
+
+    /**
+     * SDP fmtp value，例如：
+     * 0 / 1 / 42e01f
+     */
+    String value();
 }

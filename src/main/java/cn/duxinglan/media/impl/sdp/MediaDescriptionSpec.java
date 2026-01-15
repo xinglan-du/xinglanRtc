@@ -1,7 +1,7 @@
 package cn.duxinglan.media.impl.sdp;
 
-import cn.duxinglan.media.signaling.sdp.ssrc.SSRC;
-import cn.duxinglan.media.signaling.sdp.type.MediaInfoType;
+import cn.duxinglan.sdp.entity.ssrc.SSRC;
+import cn.duxinglan.sdp.entity.type.MediaInfoType;
 import lombok.Data;
 
 import java.util.List;

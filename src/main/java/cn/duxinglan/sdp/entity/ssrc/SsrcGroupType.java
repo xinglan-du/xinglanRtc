@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.entity.ssrc;
 
 /**
  *
@@ -16,5 +14,24 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public enum SsrcGroupType {
+
+    FID("FID"),
+
+    ;
+
+    public final String value;
+
+    SsrcGroupType(String value) {
+        this.value = value;
+    }
+
+    public static SsrcGroupType fromValue(String value) {
+        for (SsrcGroupType ssrcGroupType : SsrcGroupType.values()) {
+            if (ssrcGroupType.value.equals(value)) {
+                return ssrcGroupType;
+            }
+        }
+        return null;
+    }
 }

@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.entity.type;
 
 /**
  *
@@ -16,5 +14,21 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public enum MediaStreamType {
+
+
+    WMS("WMS"),
+    ;
+    public String value;
+
+    MediaStreamType(String value) {
+        this.value = value;
+    }
+
+    public static MediaStreamType fromValue(String string) {
+        return switch (string) {
+            case "WMS" -> WMS;
+            default -> null;
+        };
+    }
 }

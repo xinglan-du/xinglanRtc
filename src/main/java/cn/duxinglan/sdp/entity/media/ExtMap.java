@@ -1,6 +1,6 @@
-package cn.duxinglan.media.signaling.sdp;
+package cn.duxinglan.sdp.entity.media;
 
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+import lombok.Data;
 
 /**
  *
@@ -16,5 +16,9 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+@Data
+public class ExtMap {
+
+    private String key;
+    private String value;
 }

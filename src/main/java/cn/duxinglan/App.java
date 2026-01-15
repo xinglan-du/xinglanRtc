@@ -3,9 +3,9 @@ package cn.duxinglan;
 import cn.duxinglan.media.config.WebrtcConfig;
 import cn.duxinglan.media.core.MediaServer;
 import cn.duxinglan.media.module.CacheModel;
-import cn.duxinglan.media.signaling.sdp.Candidate;
-import cn.duxinglan.media.signaling.sdp.type.CandidateAddressType;
-import cn.duxinglan.media.signaling.sdp.type.CandidateTransportType;
+import cn.duxinglan.sdp.entity.Candidate;
+import cn.duxinglan.sdp.entity.type.CandidateAddressType;
+import cn.duxinglan.sdp.entity.type.CandidateTransportType;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -47,7 +47,7 @@ public class App {
 
 
         Candidate candidate = new Candidate();
-        candidate.setFoundation(1);
+        candidate.setFoundation("1");
         candidate.setComponentId(1);
         candidate.setCandidateTransportType(CandidateTransportType.UDP);
         candidate.setConnectionAddress("10.240.1.51");

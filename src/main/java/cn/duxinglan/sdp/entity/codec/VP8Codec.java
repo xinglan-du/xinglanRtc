@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.entity.codec;
 
 /**
  *
@@ -16,5 +14,18 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public class VP8Codec extends VideoCodec {
+
+    private static int PAYLOAD_TYPE = 96;
+
+    private static String ENCODING_FORMAT = "VP8";
+
+    private static int CLOCK_RATE = 90000;
+
+    private static int RETRANSMIT_PAYLOAD_TYPE = 97;
+
+    public VP8Codec() {
+        super(PAYLOAD_TYPE, ENCODING_FORMAT, CLOCK_RATE, RETRANSMIT_PAYLOAD_TYPE);
+    }
+
 }

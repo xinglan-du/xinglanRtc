@@ -1,6 +1,6 @@
-package cn.duxinglan.media.signaling.sdp;
+package cn.duxinglan.sdp.entity.rtp;
 
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+import lombok.Data;
 
 /**
  *
@@ -16,5 +16,10 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+@Data
+public class RtcpFeedback {
+
+    private RtcpFeedbackType rtcpFeedbackType;
+
+    private RtcpFeedbackParam rtcpFeedbackParam;
 }

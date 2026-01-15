@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.parse;
 
 /**
  *
@@ -16,5 +14,10 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public class SdpParseException extends RuntimeException {
+
+
+    public SdpParseException(String message) {
+        super(message);
+    }
 }

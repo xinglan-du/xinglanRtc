@@ -1,6 +1,9 @@
-package cn.duxinglan.media.signaling.sdp;
+package cn.duxinglan.sdp.entity.ssrc;
 
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -16,5 +19,16 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+@Data
+public class SsrcGroup {
+
+    private SsrcGroupType ssrcGroupType;
+
+    private List<Long> ssrcList = new ArrayList<>();
+
+
+    public void addSsrc(long ssrc) {
+        this.ssrcList.add(ssrc);
+    }
+
 }

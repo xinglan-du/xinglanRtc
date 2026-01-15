@@ -3,15 +3,15 @@ package cn.duxinglan.media.impl.webrtc;
 import cn.duxinglan.media.impl.sdp.IceInfo;
 import cn.duxinglan.media.impl.sdp.MediaDescriptionSpec;
 import cn.duxinglan.media.impl.sdp.SdpProcessor;
-import cn.duxinglan.media.signaling.sdp.MediaDescription;
 import cn.duxinglan.media.signaling.sdp.RTCSessionDescriptionInit;
-import cn.duxinglan.media.signaling.sdp.SessionDescription;
-import cn.duxinglan.media.signaling.sdp.session.Bundle;
-import cn.duxinglan.media.signaling.sdp.type.CodecType;
-import cn.duxinglan.media.signaling.sdp.type.RTCSdpType;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.IceHandler;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.LocalIceInfo;
-import cn.duxinglan.sdp.SdpParser;
+import cn.duxinglan.sdp.entity.MediaDescription;
+import cn.duxinglan.sdp.entity.SessionDescription;
+import cn.duxinglan.sdp.entity.session.Bundle;
+import cn.duxinglan.sdp.entity.type.CodecType;
+import cn.duxinglan.sdp.entity.type.RTCSdpType;
+import cn.duxinglan.sdp.parse.SdpParser;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -234,13 +234,15 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
 
 
     public void setRemoteDescription(RTCSessionDescriptionInit rtcSessionDescriptionInit) {
+        SessionDescription parse = SdpParser.parse(rtcSessionDescriptionInit.sdp());
+        SessionDescription sessionDescription = sdpProcessor.strToSessionDescription(rtcSessionDescriptionInit.sdp());
+        setRemoteDescription(sessionDescription);
         if (rtcSessionDescriptionInit.type() == RTCSdpType.OFFER) {
-            setRemoteDescription(sdpProcessor.strToSessionDescription(rtcSessionDescriptionInit.sdp()));
             SessionDescription answer = sdpProcessor.createAnswer();
             setLocalDescription(answer);
             webrtcProcessorEvent.onAnswer(new RTCSessionDescriptionInit(RTCSdpType.ANSWER, sdpProcessor.sessionDescriptionToStr(answer)));
         } else if (rtcSessionDescriptionInit.type() == RTCSdpType.ANSWER) {
-            setRemoteDescription(sdpProcessor.strToSessionDescription(rtcSessionDescriptionInit.sdp()));
+            //暂时不需要做任何处理
         }
 
     }

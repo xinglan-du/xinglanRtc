@@ -1,0 +1,33 @@
+package cn.duxinglan.sdp.entity.media;
+
+import cn.duxinglan.sdp.entity.type.MediaInfoType;
+import cn.duxinglan.sdp.entity.type.MediaTransportType;
+
+/**
+ *
+ * 版权所有 (c) 2025 www.duxinglan.cn
+ * <p>
+ * 项目名称：xinglanRtc
+ * <p>
+ * 本文件属于 xinglanRtc 项目的一部分。
+ * <p>
+ * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
+ * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
+ * 收费运维、收费技术支持等行为。
+ * <p>
+ * 详情请参阅项目根目录下的 LICENSE 文件。
+ **/
+public record Info(MediaInfoType type, int port, MediaTransportType transportType) {
+
+
+    public static final String KEY = "m";
+
+    public static Info defaultInfo(MediaInfoType mediaInfoType) {
+        return new Info(mediaInfoType, 9, MediaTransportType.UDP_TLS_RTP_SAVPF);
+    }
+
+    public static Info parseLine(String line) {
+        String[] split = line.split(" ");
+        return new Info(MediaInfoType.fromValue(split[0]), Integer.parseInt(split[1]), MediaTransportType.fromValue(split[2]));
+    }
+}

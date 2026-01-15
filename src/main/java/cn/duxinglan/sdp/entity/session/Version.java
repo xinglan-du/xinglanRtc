@@ -1,6 +1,6 @@
-package cn.duxinglan.media.signaling.sdp;
+package cn.duxinglan.sdp.entity.session;
 
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+import org.apache.commons.lang3.math.NumberUtils;
 
 /**
  *
@@ -16,5 +16,15 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public record Version(int version) {
+
+    public static final String KEY = "v";
+
+    public static Version defaultVersion() {
+        return new Version(0); // 默认值为 1
+    }
+
+    public static Version parseLine(String first) {
+        return new Version(NumberUtils.toInt(first, 1));
+    }
 }

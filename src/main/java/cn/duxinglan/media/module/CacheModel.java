@@ -1,6 +1,6 @@
 package cn.duxinglan.media.module;
 
-import cn.duxinglan.media.signaling.sdp.Candidate;
+import cn.duxinglan.sdp.entity.Candidate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;

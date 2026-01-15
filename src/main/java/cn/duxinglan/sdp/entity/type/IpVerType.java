@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.entity.type;
 
 /**
  *
@@ -16,5 +14,20 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public enum IpVerType {
+
+    IPV4("IP4");
+
+    public final String value;
+
+    IpVerType(String value) {
+        this.value = value;
+    }
+
+    public static IpVerType fromValue(String string) {
+        if ("IP4".equals(string)) {
+            return IPV4;
+        }
+        return null;
+    }
 }

@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.entity.session;
 
 /**
  *
@@ -16,5 +14,19 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public record ExtMapAllowMixed(boolean value) {
+
+
+    public static final String KEY = "extmap-allow-mixed";
+
+    public static ExtMapAllowMixed defaultExtMapAllowMixed(Boolean value) {
+        if (value == null) {
+            value = true;
+        }
+        return new ExtMapAllowMixed(value);
+    }
+
+    public static ExtMapAllowMixed parseLine(boolean value) {
+        return new ExtMapAllowMixed(value);
+    }
 }

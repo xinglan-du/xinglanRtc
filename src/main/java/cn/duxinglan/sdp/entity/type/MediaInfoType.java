@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.entity.type;
 
 /**
  *
@@ -16,5 +14,24 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public enum MediaInfoType {
+
+
+    VIDEO("video"),
+    AUDIO("audio");
+
+    public final String value;
+
+
+    MediaInfoType(String value) {
+        this.value = value;
+    }
+
+    public static MediaInfoType fromValue(String string) {
+        return switch (string) {
+            case "video" -> VIDEO;
+            case "audio" -> AUDIO;
+            default -> null;
+        };
+    }
 }

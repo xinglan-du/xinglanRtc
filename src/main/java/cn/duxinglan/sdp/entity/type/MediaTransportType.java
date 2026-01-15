@@ -1,6 +1,4 @@
-package cn.duxinglan.media.signaling.sdp;
-
-import cn.duxinglan.sdp.entity.type.RTCSdpType;
+package cn.duxinglan.sdp.entity.type;
 
 /**
  *
@@ -16,5 +14,20 @@ import cn.duxinglan.sdp.entity.type.RTCSdpType;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record RTCSessionDescriptionInit(RTCSdpType type, String sdp) {
+public enum MediaTransportType {
+
+    UDP_TLS_RTP_SAVPF("UDP/TLS/RTP/SAVPF");
+
+    public final String value;
+
+    MediaTransportType(String value) {
+        this.value = value;
+    }
+
+    public static MediaTransportType fromValue(String transportType) {
+        return switch (transportType) {
+            case "UDP/TLS/RTP/SAVPF" -> UDP_TLS_RTP_SAVPF;
+            default -> null;
+        };
+    }
 }
