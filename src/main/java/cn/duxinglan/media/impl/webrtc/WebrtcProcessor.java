@@ -1,8 +1,6 @@
 package cn.duxinglan.media.impl.webrtc;
 
 import cn.duxinglan.media.impl.sdp.IceInfo;
-import cn.duxinglan.media.impl.sdp.MediaDescriptionSpec;
-import cn.duxinglan.media.impl.sdp.SdpProcessor;
 import cn.duxinglan.media.module.CacheModel;
 import cn.duxinglan.media.signaling.sdp.RTCSessionDescriptionInit;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.IceHandler;
@@ -26,7 +24,9 @@ import cn.duxinglan.sdp.parse.SdpParser;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,42 +45,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  **/
 @Data
 @Slf4j
-public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
+public class WebrtcProcessor {
 
     /**
      * 用于存储 WebRTC 传输会话中 DTLS 换密所需的证书密钥材料。
      */
     private final WebRTCCertificateGenerator.DTLSKeyMaterial keyMaterial;
 
-    /**
-     * 用于处理会话描述协议(SDP)的具体实现，提供解析和生成SDP的功能。
-     */
-    private SdpProcessor sdpProcessor;
-
-    /**
-     * 表示一个用于存储编码器类型的列表。
-     * <p>
-     * 该变量用于记录和管理 WebRTC 处理过程中支持的编码器类型，为媒体流的编解码操作提供支持。
-     * 在初始化时默认包含 VP8 编码器类型，但可以根据需求进一步扩展和修改列表内容。
-     */
-    private List<CodecType> codecTypeList = List.of(CodecType.VP8);
-
-    /**
-     * 表示一个用于管理 WebRTC 媒体描述信息的映射表。
-     * <p>
-     * mediaDescriptionSpecMap 是一个以 MID（媒体标识符）为键，
-     * MediaDescriptionSpec 对象为值的有序映射，用于存储和管理与
-     * WebRTC 会话相关的媒体描述信息。
-     * <p>
-     * 该映射表的用途包括：
-     * 1. 快速查询和获取指定 MID 对应的媒体描述配置。
-     * 2. 便于在会话过程中动态添加、更新或移除媒体描述信息。
-     * 3. 支持 WebRTC 发送和接收处理器的映射注册操作。
-     * <p>
-     * 该字段采用 LinkedHashMap 实现，确保插入顺序的有效性，
-     * 同时提供较快的查找性能。
-     */
-//    private Map<String, MediaDescriptionSpec> mediaDescriptionSpecMap = new LinkedHashMap<>();
 
     /**
      * 媒体描述规格映射表，用于保存 WebRTC 中的媒体描述信息，按 `mid` 键值映射。
@@ -154,8 +125,6 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
         try {
             MediaLineInfo nullVideoMediaLineInfo = WebrtcSdpDefault.createNullVideoMediaLineInfo(getMid());
             addWebrtcSenderProcessor(nullVideoMediaLineInfo);
-//            createWebrtcSenderProcessor((MediaDescriptionSpec.SSRCDescribe) null);
-            this.sdpProcessor = new SdpProcessor(this);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -254,24 +223,7 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
             }
 
         }
-
-
         return isRemove;
-
-       /* Iterator<Map.Entry<String, MediaDescriptionSpec>> it =
-                mediaDescriptionSpecMap.entrySet().iterator();
-
-        for (MediaDescriptionSpec value : mediaDescriptionSpecMap.values()) {
-            value.getSender().ifPresent(ssrcDescribe -> {
-                if (ssrcDescribe.getPrimaryMediaStream() == primarySsrc
-                    || ssrcDescribe.getRtxMediaStream() == rtxSsrc) {
-                    value.closeSender();
-                    isRemove.set(true);
-                }
-            });
-        }
-
-        return isRemove.get();*/
     }
 
 
@@ -284,24 +236,6 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
         return mid;
     }
 
- /*   public void createWebrtcSenderProcessor(List<MediaLineInfo> mediaLineInfos) {
-        for (MediaLineInfo mediaLineInfo : mediaLineInfos) {
-            createWebrtcSenderProcessor(mediaLineInfo);
-        }
-    }
-*/
-  /*  public void createWebrtcSenderProcessor(MediaLineInfo mediaLineInfo) {
-        if (mediaLineInfo.isSendOnly()) {
-            return;
-        }
-        MediaLineInfo mediaSsrc = new MediaLineInfo(mediaLineInfo.getMediaInfoType(), getMid(), true, false);
-     *//*   MediaDescriptionSpec mediaDescriptionSpec = new MediaDescriptionSpec(getMid(), true, false);
-        sourceMediaDescriptionSpec.getReceive().ifPresent(mediaDescriptionSpec::addSender);*//*
-
-        addWebrtcSenderProcessor(mediaSsrc);
-    }*/
-
-
     private void addWebrtcSenderProcessor(MediaLineInfo mediaLineInfo) {
         if (!mediaLineInfoMap.containsKey(mediaLineInfo.getMid())) {
             log.debug("添加一个sdp行");
@@ -310,45 +244,18 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
     }
 
 
-    @Override
-    public WebRTCCertificateGenerator.DTLSKeyMaterial getKeyMaterial() {
-        return keyMaterial;
-    }
-
-    @Override
-    public List<CodecType> getCodecTypes() {
-        return codecTypeList;
-    }
-
-
-    @Override
-    public Collection<MediaDescriptionSpec> getMediaDescriptions() {
-//        return mediaDescriptionSpecMap.values();
-        return null;
-    }
-
-    @Override
-    public IceInfo getOfficeInfo() {
-        return localIceInfo.getLocalIceInfo();
-    }
-
-
     public void setRemoteDescription(RTCSessionDescriptionInit rtcSessionDescriptionInit) {
         SessionDescription parse = SdpParser.parse(rtcSessionDescriptionInit.sdp());
-//        SessionDescription sessionDescription = sdpProcessor.strToSessionDescription(rtcSessionDescriptionInit.sdp());
         setRemoteDescription(parse);
         if (rtcSessionDescriptionInit.type() == RTCSdpType.OFFER) {
             SessionDescription answer = null;
             try {
                 answer = createLocalSessionDescription();
+                setLocalDescription(answer);
+                webrtcProcessorEvent.onAnswer(new RTCSessionDescriptionInit(RTCSdpType.ANSWER, sessionDescriptionToWebrtcStr(answer)));
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-
-
-//            SessionDescription answer = sdpProcessor.createAnswer();
-            setLocalDescription(answer);
-            webrtcProcessorEvent.onAnswer(new RTCSessionDescriptionInit(RTCSdpType.ANSWER, sessionDescriptionToWebrtcStr(answer)));
         } else if (rtcSessionDescriptionInit.type() == RTCSdpType.ANSWER) {
             //暂时不需要做任何处理
         }
@@ -357,23 +264,8 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
 
     public void setRemoteDescription(SessionDescription remoteSessionDescription) {
         this.remoteSessionDescription = remoteSessionDescription;
-//        this.sdpProcessor.setRemoteDescription(remoteSessionDescription);
         this.localIceInfo.setRemoteIceInfo(remoteSessionDescription.getMediaDescriptions().getFirst().getIceInfo());
         log.debug("远程的ice信息ufrag：{};pwd:{}", localIceInfo.getRemoteIceInfo().getUfrag(), localIceInfo.getRemoteIceInfo().getPwd());
-
-
-//        Bundle bundle = remoteSessionDescription.getBundle();
-//        Set<String> midKeyList = new HashSet<>(bundle.getMid());
-
-     /*   mediaDescriptionSpecMap.entrySet().removeIf(entry -> {
-            boolean toRemove = !midKeyList.contains(entry.getKey());
-            if (toRemove) {
-                webrtcProcessorEvent.removeWebrtcProducer(entry.getValue());
-            }
-            return toRemove;
-        });*/
-
-
         List<MediaDescription> mediaDescriptionList = remoteSessionDescription.getMediaDescriptions();
         for (MediaDescription mediaDescription : mediaDescriptionList) {
             boolean isAdd = false;
@@ -402,40 +294,15 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
                 webrtcProcessorEvent.onAddWebrtcProducer(mediaLineInfo);
             }
         }
-
-
-
-        /*for (MediaDescription mediaVideoDescription : mediaDescriptionList) {
-            String mId = mediaVideoDescription.getMId().getId();
-            //这里需要明确一下。虽然这个是接受的属性，但是对应整个业务来说 这里属于生产者
-            MediaDescriptionSpec mediaDescriptionSpec;
-            if (mediaDescriptionSpecMap.containsKey(mId)) {
-                mediaDescriptionSpec = mediaDescriptionSpecMap.get(mId);
-                mediaDescriptionSpec.addReceive(mediaVideoDescription.getSsrcList(), webrtcProcessorEvent.getId());
-            } else {
-                mediaDescriptionSpec = new MediaDescriptionSpec(mId, false, true);
-                mediaDescriptionSpec.addReceive(mediaVideoDescription.getSsrcList(), webrtcProcessorEvent.getId());
-
-                mediaDescriptionSpecMap.put(mId, mediaDescriptionSpec);
-                webrtcProcessorEvent.addWebrtcProducer(mediaDescriptionSpec);
-            }
-        }*/
     }
 
     //设置或更新本地使用的offer
     public void setLocalDescription(SessionDescription localSessionDescription) {
         this.localSessionDescription = localSessionDescription;
-//        this.sdpProcessor.setLocalDescription(localSessionDescription);
-        Bundle bundle = localSessionDescription.getBundle();
-        Set<String> midKeyList = new HashSet<>(bundle.getMid());
-
         List<MediaDescription> mediaDescriptionList = localSessionDescription.getMediaDescriptions();
-
-
         //TODO 暂时遗留 这里应该将数据结构化 。不应该直接使用
         for (MediaDescription mediaDescription : mediaDescriptionList) {
             String mId = mediaDescription.getMId().id();
-
             MediaLineInfo mediaLineInfo;
             //先处理当前媒体行是否存在
             if (mediaLineInfoMap.containsKey(mId)) {
@@ -446,34 +313,15 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
                     sendInfo.setRtpPayloads(mediaDescription.getRtpPayloads());
                     sendInfo.setSsrcGroups(mediaDescription.getSsrcGroups());
                 }
-
             }
-
-
-
-         /*   MediaDescriptionSpec mediaDescriptionSpec;
-            if (mediaDescriptionSpecMap.containsKey(mId)) {
-                mediaDescriptionSpec = mediaDescriptionSpecMap.get(mId);
-                mediaDescriptionSpec.addSender(mediaVideoDescription.getSsrcList());
-            } else {
-                mediaDescriptionSpec = new MediaDescriptionSpec(mId, true, false);
-                mediaDescriptionSpec.addSender(mediaVideoDescription.getSsrcList());
-                mediaDescriptionSpecMap.put(mId, mediaDescriptionSpec);
-            }*/
         }
     }
 
     public RTCSessionDescriptionInit createOffer() throws Exception {
         SessionDescription localSessionDescription = createLocalSessionDescription();
-//        SessionDescription offer = this.sdpProcessor.createOffer();
         setLocalDescription(localSessionDescription);
         return new RTCSessionDescriptionInit(RTCSdpType.OFFER, sessionDescriptionToWebrtcStr(this.localSessionDescription));
     }
-
-/*    public List<MediaDescriptionSpec> getSenders() {
-        return mediaDescriptionSpecMap.values().stream().filter(MediaDescriptionSpec::isSendOnly).filter(mediaDescriptionSpec -> mediaDescriptionSpec.getSender().isPresent()).toList();
-    }*/
-
 
     public static String sessionDescriptionToWebrtcStr(SessionDescription offer) {
         StringBuilder sb = new StringBuilder();
@@ -548,9 +396,6 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
                             mediaSb.append(" ").append(rtcpFeedback.getRtcpFeedbackParam().value);
                         }
                         mediaSb.append("\r\n");
-                     /*   mediaSb.append(String.format("a=rtcp-fb:%d nack", rtpPayload.getPayloadType())).append("\r\n");
-                        mediaSb.append(String.format("a=rtcp-fb:%d nack pli", codec.getPayloadType())).append("\r\n");
-                        mediaSb.append(String.format("a=rtcp-fb:%d ccm fir", codec.getPayloadType())).append("\r\n");*/
                     }
                 }
 
@@ -570,8 +415,6 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
                 }
 
 
-//                mediaSb.append(String.format("a=rtpmap:%d rtx/%d", codec.getRetransmitPayloadType(), codec.getClockRate())).append("\r\n");
-//                mediaSb.append(String.format("a=fmtp:%d apt=%d", codec.getRetransmitPayloadType(), codec.getPayloadType())).append("\r\n");
             }
 
             sb.append(mediaSb);
@@ -584,7 +427,6 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
                     sb.append(" ").append(l);
                 }
                 sb.append("\r\n");
-//                sb.append(String.format("a=ssrc-group:%s %d %d", ssrcGroup.getSsrcGroupType().value, ssrcGroup.getSsrcList())).append("\r\n");
             }
             for (SSRC ssrc : mediaVideoDescription.getSsrcMap().values()) {
                 sb.append(String.format("a=ssrc:%d cname:%s", ssrc.getSsrc(), ssrc.getCname())).append("\r\n");
@@ -592,23 +434,6 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
                     sb.append(String.format("a=ssrc:%d msid:%s", ssrc.getSsrc(), msid)).append("\r\n");
                 }
             }
-
-
-          /*  List<SSRC> ssrcList = mediaVideoDescription.getSsrcList();
-            for (SSRC ssrc : ssrcList) {
-                sb.append(String.format("a=ssrc-group:FID %d %d", ssrc.getPrimaryMediaStream(), ssrc.getRtxMediaStream())).append("\r\n");
-                if (msid == null) {
-                    sb.append(String.format("a=ssrc:%d cname:%s", ssrc.getPrimaryMediaStream(), ssrc.getCname())).append("\r\n");
-                    sb.append(String.format("a=ssrc:%d cname:%s", ssrc.getRtxMediaStream(), ssrc.getCname())).append("\r\n");
-                } else {
-                    sb.append(String.format("a=ssrc:%d cname:%s", ssrc.getPrimaryMediaStream(), ssrc.getCname())).append("\r\n");
-                    sb.append(String.format("a=ssrc:%d msid:%s", ssrc.getPrimaryMediaStream(), msid)).append("\r\n");
-                    sb.append(String.format("a=ssrc:%d cname:%s", ssrc.getRtxMediaStream(), ssrc.getCname())).append("\r\n");
-                    sb.append(String.format("a=ssrc:%d msid:%s", ssrc.getRtxMediaStream(), msid)).append("\r\n");
-                }
-
-
-            }*/
         }
         return sb.toString();
     }
@@ -631,30 +456,8 @@ public class WebrtcProcessor implements SdpProcessor.SdpProcessorCallback {
          */
         void onAnswer(RTCSessionDescriptionInit answer);
 
-        /**
-         * 添加一个 WebRTC 发送端描述器。
-         *
-         * @param mediaDescriptionSpec 表示 WebRTC 会话中媒体描述的对象，包含唯一标识符、媒体类型、
-         *                             发送/接收权限以及同步源标识描述等信息。
-         */
-        void addWebrtcProducer(MediaDescriptionSpec mediaDescriptionSpec);
 
         void onAddWebrtcProducer(MediaLineInfo mediaInfo);
-
-        /**
-         * 移除指定的 WebRTC 发送端描述器。
-         *
-         * @param mediaDescriptionSpec 表示 WebRTC 会话中媒体描述的对象，包含唯一标识符、媒体类型、
-         *                             发送/接收权限以及同步源标识描述等信息。
-         */
-        void removeWebrtcProducer(MediaDescriptionSpec mediaDescriptionSpec);
-
-        /**
-         * 获取唯一标识符。
-         *
-         * @return 返回当前实例的唯一标识符。
-         */
-        String getId();
 
         /**
          * 获取当前 WebRTC 节点实例的方法。

@@ -4,7 +4,6 @@ import cn.duxinglan.media.core.IConsumer;
 import cn.duxinglan.media.core.IMediaNode;
 import cn.duxinglan.media.core.IProducer;
 import cn.duxinglan.media.core.ISignaling;
-import cn.duxinglan.media.impl.sdp.MediaDescriptionSpec;
 import cn.duxinglan.media.module.CacheModel;
 import cn.duxinglan.media.signaling.data.NodeSignalingData;
 import cn.duxinglan.media.signaling.sdp.RTCSessionDescriptionInit;
@@ -14,8 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 /**
  *
@@ -194,14 +191,6 @@ public class WebrtcNode implements IMediaNode,
         sendAnswerInfo(answer);
     }
 
-    @Override
-    public void addWebrtcProducer(MediaDescriptionSpec mediaDescriptionSpec) {
-        mediaDescriptionSpec.getReceive().ifPresent(receive -> {
-            WebrtcMediaProducer webrtcMediaProducer = new WebrtcMediaProducer(receive.getPrimaryMediaStream(), receive.getRtxMediaStream(), receive.getCname(), receive.getStreamId());
-            nodeFlowManager.addRtpMediaProducer(webrtcMediaProducer);
-            globalMediaRouter.addProducer(webrtcMediaProducer);
-        });
-    }
 
     @Override
     public void onAddWebrtcProducer(MediaLineInfo mediaLineInfo) {
@@ -213,20 +202,6 @@ public class WebrtcNode implements IMediaNode,
 
     }
 
-
-    @Override
-    public void removeWebrtcProducer(MediaDescriptionSpec mediaDescriptionSpec) {
-        Optional<MediaDescriptionSpec.SSRCDescribe> receiveOpt = mediaDescriptionSpec.getReceive();
-        receiveOpt.ifPresent(receive -> {
-            WebrtcMediaProducer webrtcMediaProducer = nodeFlowManager.removeRtpMediaProducer(receive.getPrimaryMediaStream(), receive.getRtxMediaStream());
-            globalMediaRouter.removeProducer(webrtcMediaProducer);
-        });
-    }
-
-    @Override
-    public String getId() {
-        return nodeId;
-    }
 
     @Override
     public WebrtcNode getWebrtcNode() {
@@ -241,6 +216,7 @@ public class WebrtcNode implements IMediaNode,
         long rtxSsrc = SsrcGenerator.generateSsrc();
 //        long rtxSsrc = producer.getRtxSsrc();
         MediaLineInfo mediaLineInfo = producer.getMediaLineInfo();
+        //TODO 这里的媒体行 要复制一个 同时要明确不同的ssrc
         WebrtcMediaConsumer webrtcMediaConsumer = new WebrtcMediaConsumer(mediaLineInfo);
         this.webrtcProcessor.createWebrtcSenderProcessor(mediaLineInfo);
         nodeFlowManager.addRtpMediaConsumer(webrtcMediaConsumer);

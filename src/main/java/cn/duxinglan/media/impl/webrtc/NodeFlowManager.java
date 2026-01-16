@@ -151,9 +151,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
         Set<Long> longs = consumer.getMediaLineInfo().getReadInfo().getSsrcMap().keySet();
         for (Long aLong : longs) {
             rtpMediaConsumer.put(aLong, consumer);
-        }/*
-        rtpMediaConsumer.put(consumer.getPrimarySsrc(), consumer);
-        rtpMediaConsumer.put(consumer.getRtxSsrc(), consumer);*/
+        }
     }
 
     public WebrtcMediaConsumer removeRtpMediaConsumer(IConsumer consumer) {
