@@ -129,7 +129,9 @@ public class GlobalIProducerMediaRouter implements IProducerMediaSubscriber {
 
     @Override
     public void onRtpPacket(IProducer producer, TimerRtpPacket timerRtpPacket) {
-        producerConsumerMap.get(producer).forEach(consumer -> consumer.onRtpPacket(timerRtpPacket));
+        for (IConsumer consumer : producerConsumerMap.get(producer)) {
+            consumer.onRtpPacket(timerRtpPacket);
+        }
     }
 
 

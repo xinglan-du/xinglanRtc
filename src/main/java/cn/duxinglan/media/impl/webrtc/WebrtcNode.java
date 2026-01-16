@@ -215,10 +215,9 @@ public class WebrtcNode implements IMediaNode,
 //        long primarySsrc = producer.getPrimarySsrc();
         long rtxSsrc = SsrcGenerator.generateSsrc();
 //        long rtxSsrc = producer.getRtxSsrc();
-        MediaLineInfo mediaLineInfo = producer.getMediaLineInfo();
-        //TODO 这里的媒体行 要复制一个 同时要明确不同的ssrc
-        WebrtcMediaConsumer webrtcMediaConsumer = new WebrtcMediaConsumer(mediaLineInfo);
-        this.webrtcProcessor.createWebrtcSenderProcessor(mediaLineInfo);
+        MediaLineInfo producerMediaLineInfo = producer.getMediaLineInfo();
+        MediaLineInfo consumerMediaLineInfo = this.webrtcProcessor.createWebrtcSenderProcessor(producerMediaLineInfo);
+        WebrtcMediaConsumer webrtcMediaConsumer = new WebrtcMediaConsumer(consumerMediaLineInfo);
         nodeFlowManager.addRtpMediaConsumer(webrtcMediaConsumer);
         return webrtcMediaConsumer;
     }

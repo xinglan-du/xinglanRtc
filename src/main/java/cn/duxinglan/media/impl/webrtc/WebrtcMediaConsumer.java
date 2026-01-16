@@ -108,14 +108,15 @@ public class WebrtcMediaConsumer implements IConsumer {
 
     public WebrtcMediaConsumer(MediaLineInfo mediaLineInfo) {
         this.mediaLineInfo = mediaLineInfo;
-        List<SsrcGroup> ssrcGroups = mediaLineInfo.getReadInfo().getSsrcGroups();
+        MediaLineInfo.Info sendInfo = mediaLineInfo.getSendInfo();
+        List<SsrcGroup> ssrcGroups = sendInfo.getSsrcGroups();
         for (SsrcGroup ssrcGroup : ssrcGroups) {
             if (ssrcGroup.getSsrcGroupType() == SsrcGroupType.FID) {
                 this.mainSsrc = ssrcGroup.getSsrcList().getFirst();
                 break;
             }
         }
-        SSRC ssrc = mediaLineInfo.getReadInfo().getSsrcMap().get(this.mainSsrc);
+        SSRC ssrc = sendInfo.getSsrcMap().get(this.mainSsrc);
         this.cname = ssrc.getCname();
     }
 

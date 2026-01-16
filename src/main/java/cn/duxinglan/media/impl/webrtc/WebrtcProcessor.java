@@ -17,16 +17,13 @@ import cn.duxinglan.sdp.entity.rtp.RtpPayload;
 import cn.duxinglan.sdp.entity.session.*;
 import cn.duxinglan.sdp.entity.ssrc.SSRC;
 import cn.duxinglan.sdp.entity.ssrc.SsrcGroup;
-import cn.duxinglan.sdp.entity.type.CodecType;
 import cn.duxinglan.sdp.entity.type.MediaInfoType;
 import cn.duxinglan.sdp.entity.type.RTCSdpType;
 import cn.duxinglan.sdp.parse.SdpParser;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -194,17 +191,44 @@ public class WebrtcProcessor {
     }
 
 
-    public void createWebrtcSenderProcessor(MediaLineInfo producerMediaLineInfo) {
+    public MediaLineInfo createWebrtcSenderProcessor(MediaLineInfo producerMediaLineInfo) {
         MediaLineInfo.Info readInfo = producerMediaLineInfo.getReadInfo();
+
+        List<SsrcGroup> readSsrcGroups = readInfo.getSsrcGroups();
+        Map<Long, SSRC> readSsrcMap = readInfo.getSsrcMap();
+
+        List<SsrcGroup> sendSsrcGroups = new ArrayList<>();
+        Map<Long, SSRC> sendInfoSsrc = new HashMap<>();
+
+        for (SsrcGroup readSsrcGroup : readSsrcGroups) {
+            SsrcGroup ssrcGroup = new SsrcGroup();
+            ssrcGroup.setSsrcGroupType(readSsrcGroup.getSsrcGroupType());
+            for (Long l : readSsrcGroup.getSsrcList()) {
+                long l1 = SsrcGenerator.generateSsrc();
+                ssrcGroup.addSsrc(l1);
+
+
+                SSRC readSSrc = readSsrcMap.get(l);
+                SSRC ssrc = new SSRC();
+                ssrc.setSsrc(l1);
+                ssrc.setCname(readSSrc.getCname());
+                ssrc.setStreamId(readSSrc.getStreamId());
+                sendInfoSsrc.put(ssrc.getSsrc(), ssrc);
+            }
+            sendSsrcGroups.add(ssrcGroup);
+        }
+
+
         MediaLineInfo.Info info = new MediaLineInfo.Info();
-        info.setSsrcMap(readInfo.getSsrcMap());
-        info.setSsrcGroups(readInfo.getSsrcGroups());
+        info.setSsrcMap(sendInfoSsrc);
+        info.setSsrcGroups(sendSsrcGroups);
         info.setRtpPayloads(readInfo.getRtpPayloads());
         MediaLineInfo mediaLineInfo = new MediaLineInfo(producerMediaLineInfo.getMediaInfoType(), getMid(), true, false);
         mediaLineInfo.setSendInfo(info);
 
 
         addWebrtcSenderProcessor(mediaLineInfo);
+        return mediaLineInfo;
     }
 
 
@@ -215,10 +239,20 @@ public class WebrtcProcessor {
             MediaLineInfo.Info sendInfo = mediaLineInfo.getSendInfo();
             for (Long ssrc : sendInfo.getSsrcMap().keySet()) {
                 for (MediaLineInfo value : mediaLineInfoMap.values()) {
-                    if (value.getSendInfo().getSsrcMap().containsKey(ssrc)) {
-                        value.closeSender();
-                        isRemove = true;
+                    if(value.getSendInfo() != null){
+                        if (value.getSendInfo().getSsrcMap().containsKey(ssrc)) {
+                            value.closeSender();
+                            isRemove = true;
+                        }
                     }
+                    if(value.getReadInfo() != null){
+                        if (value.getReadInfo().getSsrcMap().containsKey(ssrc)) {
+                            value.closeSender();
+                            isRemove = true;
+                        }
+                    }
+
+
                 }
             }
 
@@ -285,7 +319,6 @@ public class WebrtcProcessor {
             //TODO 暂时不考虑ssrc修改的问题
             Map<Long, SSRC> ssrcMap = mediaDescription.getSsrcMap();
             MediaLineInfo.Info readInfo = new MediaLineInfo.Info();
-
             readInfo.setSsrcMap(ssrcMap);
             readInfo.setRtpPayloads(mediaDescription.getRtpPayloads());
             readInfo.setSsrcGroups(mediaDescription.getSsrcGroups());
