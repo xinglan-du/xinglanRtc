@@ -1,7 +1,6 @@
 package cn.duxinglan.sdp.entity;
 
 import cn.duxinglan.media.impl.sdp.IceInfo;
-import cn.duxinglan.sdp.entity.codec.VideoCodec;
 import cn.duxinglan.sdp.entity.media.*;
 import cn.duxinglan.sdp.entity.rtp.RtpPayload;
 import cn.duxinglan.sdp.entity.ssrc.SSRC;
@@ -83,7 +82,7 @@ public class MediaDescription {
     /**
      * 编码器列表
      */
-    protected List<VideoCodec> codecs;
+//    protected List<VideoCodec> codecs;
 
     /**
      * 表示媒体会话中 RTP 负载类型的映射关系。
@@ -131,29 +130,16 @@ public class MediaDescription {
      */
     public String getPayloadsToString() {
         StringBuilder sb = new StringBuilder();
-        for (VideoCodec codec : codecs) {
+      /*  for (VideoCodec codec : codecs) {
             sb.append(codec.getPayloadType()).append(" ").append(codec.getRetransmitPayloadType());
-        }
+        }*/
         return sb.toString();
     }
 
-    public void addCodec(VideoCodec videoCodec) {
-        if (this.codecs == null) {
-            this.codecs = new ArrayList<>();
-        }
-        this.codecs.add(videoCodec);
-    }
 
-    public void addCodecs(List<VideoCodec> videoCodecs) {
-        if (this.codecs == null) {
-            this.codecs = new ArrayList<>();
-        }
-        this.codecs.addAll(videoCodecs);
-    }
 
     public void addSSRC(SSRC ssrc) {
         ssrcMap.put(ssrc.getSsrc(), ssrc);
-
     }
 
 

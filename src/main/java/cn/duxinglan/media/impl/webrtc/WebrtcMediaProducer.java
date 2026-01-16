@@ -7,8 +7,14 @@ import cn.duxinglan.media.protocol.rtcp.*;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpTimeState;
 import cn.duxinglan.media.protocol.rtp.TimerRtpPacket;
+import cn.duxinglan.sdp.entity.rtp.RtpPayload;
+import cn.duxinglan.sdp.entity.ssrc.SSRC;
+import cn.duxinglan.sdp.entity.ssrc.SsrcGroup;
+import cn.duxinglan.sdp.entity.ssrc.SsrcGroupType;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -28,16 +34,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class WebrtcMediaProducer implements IProducer, IMediaControl {
 
-    private final long primarySsrc;
 
-    private final long rtxSsrc;
+    @Getter
+    private MediaLineInfo mediaLineInfo;
 
-    private final String cname;
-
-    private final String streamId;
-
-    //TODO 临时写法 需要从sdp传入
-    private final int clockRate = 90000;
+    private Long mainSsrc;
 
     private IProducerMediaSubscriber producerMediaSubscriber;
 
@@ -52,42 +53,45 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
     private long lastArrivalRtpTime = -1;
     private long jitter = 0;
 
+    public WebrtcMediaProducer(MediaLineInfo mediaLineInfo) {
+        this.mediaLineInfo = mediaLineInfo;
+        List<SsrcGroup> ssrcGroups = mediaLineInfo.getReadInfo().getSsrcGroups();
+        for (SsrcGroup ssrcGroup : ssrcGroups) {
+            if (ssrcGroup.getSsrcGroupType() == SsrcGroupType.FID) {
+                this.mainSsrc = ssrcGroup.getSsrcList().getFirst();
+                break;
+            }
+        }
+    }
+
     public WebrtcMediaProducer(long primarySsrc, long rtxSsrc, String cname, String streamId) {
         log.info("生产者初始化：primarySsrc:{},rtxSsrc:{},cname:{},streamId:{}", primarySsrc, rtxSsrc, cname, streamId);
-        this.primarySsrc = primarySsrc;
-        this.rtxSsrc = rtxSsrc;
-        this.cname = cname;
-        this.streamId = streamId;
+
     }
 
 
-    @Override
-    public long getPrimarySsrc() {
-        return primarySsrc;
-    }
-
-    @Override
-    public long getRtxSsrc() {
-        return rtxSsrc;
-    }
 
     @Override
     public String getCname() {
-        return cname;
+        SSRC ssrc = mediaLineInfo.getReadInfo().getSsrcMap().get(this.mainSsrc);
+        return ssrc.getCname();
     }
 
     @Override
     public String getStreamId() {
-        return streamId;
+        SSRC ssrc = mediaLineInfo.getReadInfo().getSsrcMap().get(this.mainSsrc);
+        return ssrc.getStreamId();
     }
 
 
     @Override
     public void onRtpPacket(RtpPacket packet) {
-        //这里最好从接受层传入，目前先在这里进行处理
+
+        int payloadType = packet.getPayloadType();
+        RtpPayload rtpPayload = mediaLineInfo.getReadInfo().getRtpPayloads().get(payloadType);
+
         long arrivalTimeNs = System.nanoTime();
-        long arrivalRtpTime =
-                arrivalTimeNs * clockRate / 1_000_000_000L;
+        long arrivalRtpTime = arrivalTimeNs * rtpPayload.getClockRate() / 1_000_000_000L;
 
         if (lastRtpTs >= 0) {
             long sendDiff = packet.getTimestamp() - lastRtpTs;
@@ -106,11 +110,12 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
                 long sourceTimeNs =
                         rtpTimeState.getBaseNtpNs()
                         + (packet.getTimestamp() - rtpTimeState.getBaseRtpTs())
-                          * 1_000_000_000L / clockRate;
+                          * 1_000_000_000L / rtpPayload.getClockRate();
                 timerRtpPacket = new TimerRtpPacket(sourceTimeNs, packet);
             } else {
                 timerRtpPacket = new TimerRtpPacket(null, packet);
             }
+
             //TODO 这里需要处理回绕 暂时不做处理
             maxSeq = packet.getSequenceNumber();
             producerMediaSubscriber.onRtpPacket(this, timerRtpPacket);
@@ -153,6 +158,7 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
         requestKeyframes.compareAndSet(false, true);
     }
 
+
     @Override
     public IMediaControl getMediaControl() {
         return this;
@@ -167,7 +173,7 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
         receiverReportRtcpPacket.setPayloadType(RtcpPayloadType.RECEIVER_REPORT.value);
         receiverReportRtcpPacket.setSsrc(1);
         ReceiverReportBlock receiverReportBlock = new ReceiverReportBlock();
-        receiverReportBlock.setSourceSsrc(primarySsrc);
+        receiverReportBlock.setSourceSsrc(mainSsrc);
         receiverReportBlock.setFractionLost(0);
         receiverReportBlock.setLost(0);
         receiverReportBlock.setExtHighestSeq(maxSeq);
@@ -190,7 +196,7 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
             psFbRtcpPacket.setPayloadType(RtcpPayloadType.PSFB.value);
             psFbRtcpPacket.setLength(2);
             psFbRtcpPacket.setSenderSsrc(1);
-            psFbRtcpPacket.setMediaSsrc(primarySsrc);
+            psFbRtcpPacket.setMediaSsrc(mainSsrc);
             return psFbRtcpPacket;
         }
         return null;

@@ -22,4 +22,16 @@ public class RtcpFeedback {
     private RtcpFeedbackType rtcpFeedbackType;
 
     private RtcpFeedbackParam rtcpFeedbackParam;
+
+    public RtcpFeedback() {
+    }
+
+    public RtcpFeedback(RtcpFeedbackType rtcpFeedbackType) {
+        this.rtcpFeedbackType = rtcpFeedbackType;
+    }
+
+    public RtcpFeedback(RtcpFeedbackType rtcpFeedbackType, RtcpFeedbackParam rtcpFeedbackParam) {
+        this.rtcpFeedbackType = rtcpFeedbackType;
+        this.rtcpFeedbackParam = rtcpFeedbackParam;
+    }
 }

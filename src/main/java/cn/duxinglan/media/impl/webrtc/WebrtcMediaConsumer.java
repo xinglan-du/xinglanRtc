@@ -8,14 +8,19 @@ import cn.duxinglan.media.protocol.rtp.CachedRtpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
 import cn.duxinglan.media.protocol.rtp.SenderRtpPacket;
 import cn.duxinglan.media.protocol.rtp.TimerRtpPacket;
+import cn.duxinglan.sdp.entity.ssrc.SSRC;
+import cn.duxinglan.sdp.entity.ssrc.SsrcGroup;
+import cn.duxinglan.sdp.entity.ssrc.SsrcGroupType;
 import io.netty.util.collection.LongObjectHashMap;
 import io.netty.util.collection.LongObjectMap;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.PriorityQueue;
 
 /**
@@ -55,19 +60,11 @@ public class WebrtcMediaConsumer implements IConsumer {
      */
     private static final long CACHE_WINDOW_NS = 500_000_000L; // 500ms
 
-    /**
-     * 表示 WebRTC 媒体消费者的主同步源标识符（SSRC）。
-     * SSRC 是 RTP 协议中的一个字段，用于唯一标识一个 RTP 数据流。
-     * 该字段是只读的且不可变，通常在初始化时设置，之后用于区分不同的媒体数据流。
-     */
-    private final long primarySsrc;
 
-    /**
-     * 用于存储RTX（冗余传输）SSRC（同步源 标识符）的变量。
-     * RTX SSRC 用于支持 WebRTC 媒体消费者的重传机制。
-     * 它标识了与主流媒体数据对应的重传流的同步源标识符。
-     */
-    private final long rtxSsrc;
+    @Getter
+    private MediaLineInfo mediaLineInfo;
+
+    private Long mainSsrc;
 
     /**
      * 表示WebRTC媒体消费者中与会话相关的CNAME (Canonical Name) 标识符。
@@ -75,14 +72,14 @@ public class WebrtcMediaConsumer implements IConsumer {
      * cname是在RTCP (实时传输控制协议)会话中用于标识特定源的标准化名称，确保在多媒体会话期间关联的源能够被唯一标识。
      * 此字段一旦分配后是不可变的。
      */
-    private final String cname;
+    private String cname;
 
     /**
      * 表示WebRTC媒体消费方的流标识符。
      * 此变量用于唯一标识媒体流，常用于关联和管理特定的音视频流。
      * 通常，该变量在实例化对象时由外部提供，且在整个生命周期内保持不变。
      */
-    private final String streamId;
+//    private final String streamId;
 
     /**
      * 表示一个消费者媒体订阅者，用于处理 RTP 媒体数据包与定时 RTP 数据包。
@@ -109,24 +106,19 @@ public class WebrtcMediaConsumer implements IConsumer {
 
     private IMediaControl mediaControl;
 
-    public WebrtcMediaConsumer(long primarySsrc, long rtxSsrc, String cname, String streamId) {
-        log.info("消费者初始化：primarySsrc:{},rtxSsrc:{},cname:{},streamId:{}", primarySsrc, rtxSsrc, cname, streamId);
-        this.primarySsrc = primarySsrc;
-        this.rtxSsrc = rtxSsrc;
-        this.cname = cname;
-        this.streamId = streamId;
+    public WebrtcMediaConsumer(MediaLineInfo mediaLineInfo) {
+        this.mediaLineInfo = mediaLineInfo;
+        List<SsrcGroup> ssrcGroups = mediaLineInfo.getReadInfo().getSsrcGroups();
+        for (SsrcGroup ssrcGroup : ssrcGroups) {
+            if (ssrcGroup.getSsrcGroupType() == SsrcGroupType.FID) {
+                this.mainSsrc = ssrcGroup.getSsrcList().getFirst();
+                break;
+            }
+        }
+        SSRC ssrc = mediaLineInfo.getReadInfo().getSsrcMap().get(this.mainSsrc);
+        this.cname = ssrc.getCname();
     }
 
-
-    @Override
-    public long getPrimarySsrc() {
-        return primarySsrc;
-    }
-
-    @Override
-    public long getRtxSsrc() {
-        return rtxSsrc;
-    }
 
 
     @Override
@@ -191,7 +183,7 @@ public class WebrtcMediaConsumer implements IConsumer {
         senderReportRtcpPacket.setRc(0);
         senderReportRtcpPacket.setPayloadType(RtcpPayloadType.SENDER_REPORT.value); // SR
         senderReportRtcpPacket.setLength((28 / 4) - 1);
-        senderReportRtcpPacket.setSsrc(primarySsrc);
+        senderReportRtcpPacket.setSsrc(mainSsrc);
 
 
         long ntpNs = timeAnchor.anchorNtpNs
@@ -216,7 +208,6 @@ public class WebrtcMediaConsumer implements IConsumer {
     public void onRtcpPacket(RtcpPacket packet, InetSocketAddress remoteAddress) {
         if (packet instanceof PsFbRtcpPacket psFbRtcpPacket) {
             if (this.mediaControl != null) {
-                log.debug("消费者：{}；请求关键帧：{}", primarySsrc, this.mediaControl.getPrimarySsrc());
                 this.mediaControl.onPLI();
             }
         }
@@ -249,7 +240,7 @@ public class WebrtcMediaConsumer implements IConsumer {
                 lastRtpTimestamp = head.getPacket().getTimestamp();
                 packetCount++;
                 octetCount += head.getPacket().getPayload().readableBytes();
-                return new SenderRtpPacket(primarySsrc, head.getPacket());
+                return new SenderRtpPacket(mainSsrc, head.getPacket());
             }
         }
         return null;
@@ -282,7 +273,7 @@ public class WebrtcMediaConsumer implements IConsumer {
         sdesRtcpPacket.setPayloadType(RtcpPayloadType.SDES.value);
         //TODO 这里要注意 需要动态计算
         sdesRtcpPacket.setLength((28 / 4) - 1);
-        SdesChunk chunk = new SdesChunk(primarySsrc);
+        SdesChunk chunk = new SdesChunk(mainSsrc);
         CnameSdesItem cnameItem = new CnameSdesItem(cname);
         chunk.addItem(cnameItem);
         sdesRtcpPacket.addChunk(chunk);

@@ -203,6 +203,16 @@ public class WebrtcNode implements IMediaNode,
         });
     }
 
+    @Override
+    public void onAddWebrtcProducer(MediaLineInfo mediaLineInfo) {
+        if (mediaLineInfo.isReadOnly()) {
+            WebrtcMediaProducer webrtcMediaProducer = new WebrtcMediaProducer(mediaLineInfo);
+            nodeFlowManager.addRtpMediaProducer(webrtcMediaProducer);
+            globalMediaRouter.addProducer(webrtcMediaProducer);
+        }
+
+    }
+
 
     @Override
     public void removeWebrtcProducer(MediaDescriptionSpec mediaDescriptionSpec) {
@@ -230,17 +240,17 @@ public class WebrtcNode implements IMediaNode,
 //        long primarySsrc = producer.getPrimarySsrc();
         long rtxSsrc = SsrcGenerator.generateSsrc();
 //        long rtxSsrc = producer.getRtxSsrc();
-        WebrtcMediaConsumer webrtcMediaConsumer = new WebrtcMediaConsumer(primarySsrc, rtxSsrc, producer.getCname(), producer.getStreamId());
-        this.webrtcProcessor.createWebrtcSenderProcessor(primarySsrc, rtxSsrc, producer.getCname(), producer.getStreamId());
+        MediaLineInfo mediaLineInfo = producer.getMediaLineInfo();
+        WebrtcMediaConsumer webrtcMediaConsumer = new WebrtcMediaConsumer(mediaLineInfo);
+        this.webrtcProcessor.createWebrtcSenderProcessor(mediaLineInfo);
         nodeFlowManager.addRtpMediaConsumer(webrtcMediaConsumer);
         return webrtcMediaConsumer;
     }
 
     @Override
     public boolean removeConsumer(IConsumer consumer) {
-        log.info("移除消费者：{}", consumer.getPrimarySsrc());
         nodeFlowManager.removeRtpMediaConsumer(consumer);
-        return this.webrtcProcessor.removeWebrtcSenderProcessor(consumer.getPrimarySsrc(), consumer.getRtxSsrc());
+        return this.webrtcProcessor.removeWebrtcSenderProcessor(consumer.getMediaLineInfo());
     }
 
     @Override

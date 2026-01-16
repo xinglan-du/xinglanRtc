@@ -103,7 +103,6 @@ public class GlobalIProducerMediaRouter implements IProducerMediaSubscriber {
      */
     public void addConsumer(IProducer producer, IConsumer consumer) {
         producerConsumerMap.get(producer).add(consumer);
-        log.info("绑定关键帧请求事件,生产者:{},消费者:{}", producer.getPrimarySsrc(), consumer.getPrimarySsrc());
         consumer.setMediaControl(producer.getMediaControl());
         if (producer.isSourceTimeReady()) {
             consumer.onSourceTimeReady();
@@ -118,7 +117,6 @@ public class GlobalIProducerMediaRouter implements IProducerMediaSubscriber {
      * @param consumer 要从生产者关联列表中移除的消费者对象
      */
     public void removeConsumer(IProducer producer, IConsumer consumer) {
-        log.info("移除一个消费者，消费的是:{}", producer.getPrimarySsrc());
         producerConsumerMap.get(producer).remove(consumer);
         consumer.removeMediaControl();
     }

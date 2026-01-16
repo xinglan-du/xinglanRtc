@@ -1,7 +1,9 @@
 package cn.duxinglan.media.core;
 
+import cn.duxinglan.media.impl.webrtc.MediaLineInfo;
 import cn.duxinglan.media.protocol.rtcp.RtcpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
+import cn.duxinglan.sdp.entity.type.MediaInfoType;
 
 /**
  *
@@ -19,22 +21,6 @@ import cn.duxinglan.media.protocol.rtp.RtpPacket;
  **/
 public interface IProducer {
 
-    /**
-     * 获取主媒体流的同步源标识符 (SSRC)。
-     * SSRC 是 RTP 协议中用于区分不同媒体流的唯一标识符。
-     *
-     * @return 主媒体流的同步源标识符，表示为一个长整型值。
-     */
-    long getPrimarySsrc();
-
-    /**
-     * 获取冗余传输流的同步源标识符 (SSRC)。
-     * RTX (Retransmission) 流用于在丢包情况下重传主流中的数据，
-     * 其 SSRC 用于标识该冗余流。
-     *
-     * @return 冗余传输流的同步源标识符，表示为一个长整型值。
-     */
-    long getRtxSsrc();
 
     /**
      * 获取CNAME (Canonical Name)，用于标识在会话中唯一的媒体发送者。
@@ -106,4 +92,6 @@ public interface IProducer {
     boolean isSourceTimeReady();
 
     IMediaControl getMediaControl();
+
+    MediaLineInfo getMediaLineInfo();
 }

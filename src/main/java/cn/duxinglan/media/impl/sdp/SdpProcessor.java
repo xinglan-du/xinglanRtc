@@ -71,22 +71,22 @@ public class SdpProcessor {
         offer.setExtMapAllowMixed(ExtMapAllowMixed.defaultExtMapAllowMixed(true));
         offer.setMSid(MSid.defaultMsid());
 
-        List<MediaDescription> offerMediaDescription = getOfferMediaDescription();
-        for (MediaDescription mediaDescription : offerMediaDescription) {
-            bundle.addMid(mediaDescription.getMId().getId());
-            offer.addMediaDescription(mediaDescription);
-        }
+//        List<MediaDescription> offerMediaDescription = getOfferMediaDescription();
+//        for (MediaDescription mediaDescription : offerMediaDescription) {
+//            bundle.addMid(mediaDescription.getMId().getId());
+//            offer.addMediaDescription(mediaDescription);
+//        }
         return offer;
     }
 
     private List<MediaDescription> getOfferMediaDescription() throws SdpException {
         List<MediaDescription> mediaDescriptions = new ArrayList<>();
-        Collection<MediaDescriptionSpec> mediaDescriptionSpecs = sdpProcessorCallback.getMediaDescriptions();
-
-        for (MediaDescriptionSpec mediaDescriptionSpec : mediaDescriptionSpecs) {
-            MediaDescription mediaDescription = generatedMediaDescription(mediaDescriptionSpec);
-            mediaDescriptions.add(mediaDescription);
-        }
+//        Collection<MediaDescriptionSpec> mediaDescriptionSpecs = sdpProcessorCallback.getMediaDescriptions();
+//
+//        for (MediaDescriptionSpec mediaDescriptionSpec : mediaDescriptionSpecs) {
+//            MediaDescription mediaDescription = generatedMediaDescription(mediaDescriptionSpec);
+//            mediaDescriptions.add(mediaDescription);
+//        }
         return mediaDescriptions;
     }
 
@@ -115,7 +115,7 @@ public class SdpProcessor {
         List<CodecType> codecTypes = sdpProcessorCallback.getCodecTypes();
         for (CodecType codecType : codecTypes) {
             VideoCodec videoCodec = CodecFactory.createVideoCodec(codecType);
-            mediaDescription.addCodec(videoCodec);
+//            mediaDescription.addCodec(videoCodec);
         }
 
         if (mediaDescriptionSpec.isSendOnly()) {
@@ -161,7 +161,7 @@ public class SdpProcessor {
         sb.append(String.format("a=msid-semantic: %s %s", mSid.type().value, mSid.getSDPLine())).append("\r\n");
         for (MediaDescription mediaVideoDescription : offer.getMediaDescriptions()) {
             Info info = mediaVideoDescription.getInfo();
-            sb.append(String.format("m=%s %d %s %s", info.type().value, info.port(), info.transportType().value, mediaVideoDescription.getPayloadsToString())).append("\r\n");
+//            sb.append(String.format("m=%s %d %s %s", info.type().value, info.port(), info.transportType().value, mediaVideoDescription.getPayloadsToString())).append("\r\n");
 
             //网络连接信息
             Connection connection = mediaVideoDescription.getConnection();
@@ -181,7 +181,7 @@ public class SdpProcessor {
             Fingerprint fingerprint = mediaVideoDescription.getFingerprint();
             sb.append(String.format("a=fingerprint:%s %s", fingerprint.type().value, fingerprint.finger())).append("\r\n");
             sb.append(String.format("a=setup:%s", mediaVideoDescription.getSetup().type().value)).append("\r\n");
-            sb.append(String.format("a=mid:%s", mediaVideoDescription.getMId().getId())).append("\r\n");
+            sb.append(String.format("a=mid:%s", mediaVideoDescription.getMId().id())).append("\r\n");
             sb.append(String.format("a=%s", mediaVideoDescription.getMediaDirection().type().value)).append("\r\n");
             String msid = null;
             if (mediaVideoDescription.getMsid() != null) {
@@ -193,9 +193,9 @@ public class SdpProcessor {
             }
             sb.append(CacheModel.getLocalCandidate().toSdpStr()).append("\r\n");
 
-            List<VideoCodec> codecs = mediaVideoDescription.getCodecs();
+//            List<VideoCodec> codecs = mediaVideoDescription.getCodecs();
             StringBuilder mediaSb = new StringBuilder();
-            for (VideoCodec codec : codecs) {
+           /* for (VideoCodec codec : codecs) {
                 mediaSb.append(String.format("a=rtpmap:%d %s/%d", codec.getPayloadType(), codec.getEncodingFormat(), codec.getClockRate())).append("\r\n");
                 mediaSb.append(String.format("a=rtcp-fb:%d nack", codec.getPayloadType())).append("\r\n");
                 mediaSb.append(String.format("a=rtcp-fb:%d nack pli", codec.getPayloadType())).append("\r\n");
@@ -204,7 +204,7 @@ public class SdpProcessor {
                 mediaSb.append(String.format("a=fmtp:%d apt=%d", codec.getRetransmitPayloadType(), codec.getPayloadType())).append("\r\n");
 
 
-            }
+            }*/
             sb.append(mediaSb);
             List<SSRC> ssrcList = mediaVideoDescription.getSsrcList();
             for (SSRC ssrc : ssrcList) {
@@ -270,7 +270,7 @@ public class SdpProcessor {
             }
             if (mediaDescription.getInfo().type() == MediaInfoType.VIDEO) {
                 List<VideoCodec> videoCodecs = resolveVideoCodec(sdpLine);
-                mediaDescription.addCodecs(videoCodecs);
+//                mediaDescription.addCodecs(videoCodecs);
             } else if (mediaDescription.getInfo().type() == MediaInfoType.AUDIO) {
 //                VideoCodec codec = resolveVideoCodec(sdpLine);
 //                mediaDescription.addCodec(codec);

@@ -18,5 +18,4 @@ public interface IMediaControl {
 
     void onPLI();
 
-    long getPrimarySsrc();
 }

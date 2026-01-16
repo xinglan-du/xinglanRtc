@@ -26,8 +26,18 @@ public class MediaDescriptionSpec implements IMediaDescriptionSpec {
 
     private final String mid;
 
+    /**
+     * 表示当前媒体配置是否为仅发送模式。
+     * 当该值为 true 时，媒体流仅限于发送而不支持接收。
+     * 适用于无法或者不需要接收媒体流的场景，例如单向推流。
+     */
     private boolean sendOnly;
 
+    /**
+     * 表示当前媒体配置是否为只读模式。
+     * 当该值为 true 时，禁止对该媒体配置进行修改，确保其配置处于不可变状态。
+     * 该属性常用于需要保护配置不被外部更改的场景，以确保系统的一致性。
+     */
     private boolean readOnly;
 
     /**

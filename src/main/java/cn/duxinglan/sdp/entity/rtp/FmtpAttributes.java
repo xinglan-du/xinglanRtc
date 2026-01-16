@@ -29,9 +29,14 @@ public class FmtpAttributes {
      */
     private Integer associatedPayloadType;
 
-    private final Map<String, String> params =
-            new LinkedHashMap<>();
+    private final Map<String, String> params = new LinkedHashMap<>();
 
+    public FmtpAttributes() {
+    }
+
+    public FmtpAttributes(Integer associatedPayloadType) {
+        this.associatedPayloadType = associatedPayloadType;
+    }
 
     public void putParam(String key, String value) {
         params.put(key.toLowerCase(Locale.ROOT), value);

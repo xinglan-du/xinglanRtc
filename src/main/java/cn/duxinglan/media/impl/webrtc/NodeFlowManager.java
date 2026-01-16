@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -126,8 +127,10 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
     }
 
     public void addRtpMediaProducer(WebrtcMediaProducer mediaProducer) {
-        rtpMediaProducer.put(mediaProducer.getPrimarySsrc(), mediaProducer);
-        rtpMediaProducer.put(mediaProducer.getRtxSsrc(), mediaProducer);
+        Set<Long> longs = mediaProducer.getMediaLineInfo().getReadInfo().getSsrcMap().keySet();
+        for (Long aLong : longs) {
+            rtpMediaProducer.put(aLong, mediaProducer);
+        }
     }
 
     public WebrtcMediaProducer removeRtpMediaProducer(long primarySsrc, long rtxSsrc) {
@@ -145,14 +148,31 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
 
     public void addRtpMediaConsumer(WebrtcMediaConsumer consumer) {
         consumer.setMediaSubscriber(this);
+        Set<Long> longs = consumer.getMediaLineInfo().getReadInfo().getSsrcMap().keySet();
+        for (Long aLong : longs) {
+            rtpMediaConsumer.put(aLong, consumer);
+        }/*
         rtpMediaConsumer.put(consumer.getPrimarySsrc(), consumer);
-        rtpMediaConsumer.put(consumer.getRtxSsrc(), consumer);
+        rtpMediaConsumer.put(consumer.getRtxSsrc(), consumer);*/
     }
 
     public WebrtcMediaConsumer removeRtpMediaConsumer(IConsumer consumer) {
+
+        Set<Long> longs = consumer.getMediaLineInfo().getSendInfo().getSsrcMap().keySet();
+        WebrtcMediaConsumer remove = null;
+        for (Long aLong : longs) {
+
+            WebrtcMediaConsumer remove1 = rtpMediaConsumer.remove(aLong);
+            if (remove == null){
+                remove = remove1;
+            }
+        }
+
+        return remove;
+  /*
         WebrtcMediaConsumer remove = rtpMediaConsumer.remove(consumer.getPrimarySsrc());
         rtpMediaConsumer.remove(consumer.getRtxSsrc());
-        return remove;
+        return remove;*/
     }
 
     public IProducer getMediaProducer(long primaryMediaStream) {
@@ -162,7 +182,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
     public void sendReadyPackets(long nowNs) {
         for (IConsumer consumer : rtpMediaConsumer.values()) {
             int batch = 0;
-            int maxBatch = 2; // 每轮每个 Consumer 最多发2包
+            int maxBatch = 5; // 每轮每个 Consumer 最多发2包
             SenderRtpPacket senderRtpPacket;
             while (batch < maxBatch && (senderRtpPacket = consumer.pollReady(nowNs)) != null) {
                 mediaTransport.sendRtpPacket(senderRtpPacket);
@@ -171,14 +191,16 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
         }
     }
 
-
+    /**
+     * 发送已准备好的 RTCP 包。该方法会遍历 RTP 媒体消费者和生产者集合，
+     * 根据其当前状态和指定的规则构建 RTCP 包，并通过数据传输通道发送这些 RTCP 包。
+     *
+     * @param nowNs 当前的时间戳，以纳秒为单位，用于生成 RTCP 报告和其他时间相关计算。
+     */
     public void sendReadyRtcpPackets(long nowNs) {
         for (Map.Entry<Long, WebrtcMediaConsumer> longWebrtcMediaConsumerEntry : rtpMediaConsumer.entrySet()) {
-            Long key = longWebrtcMediaConsumerEntry.getKey();
             WebrtcMediaConsumer webrtcMediaConsumer = longWebrtcMediaConsumerEntry.getValue();
-            if (key != webrtcMediaConsumer.getPrimarySsrc()) {
-                continue;
-            }
+
             if (webrtcMediaConsumer.getTimeState() != WebrtcMediaConsumer.TimeState.RUNNING) {
                 continue;
             }
@@ -198,13 +220,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
         }
 
         for (Map.Entry<Long, WebrtcMediaProducer> longWebrtcMediaProducerEntry : rtpMediaProducer.entrySet()) {
-            Long key = longWebrtcMediaProducerEntry.getKey();
             WebrtcMediaProducer webrtcMediaProducer = longWebrtcMediaProducerEntry.getValue();
-            if (key != webrtcMediaProducer.getPrimarySsrc()) {
-//                log.info("子流 跳过");
-                continue;
-            }
-
 
             List<RtcpPacket> rtcpPackets = new ArrayList<>();
             ReceiverReportRtcpPacket receiverReportRtcpPacket = webrtcMediaProducer.consumeReceiverReport(nowNs);

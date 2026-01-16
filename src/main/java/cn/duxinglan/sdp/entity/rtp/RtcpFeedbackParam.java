@@ -23,7 +23,7 @@ public enum RtcpFeedbackParam {
     FIR("fir"),
     SLI("sli");
 
-    private final String value;
+    public final String value;
 
     RtcpFeedbackParam(String value) {
         this.value = value;

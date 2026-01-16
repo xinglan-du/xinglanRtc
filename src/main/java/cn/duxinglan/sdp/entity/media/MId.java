@@ -1,7 +1,5 @@
 package cn.duxinglan.sdp.entity.media;
 
-import lombok.Data;
-
 /**
  *
  * 版权所有 (c) 2025 www.duxinglan.cn
@@ -16,15 +14,6 @@ import lombok.Data;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-@Data
-public class MId {
+public record MId(String id) {
 
-    private String id;
-
-    public MId() {
-    }
-
-    public MId(String id) {
-        this.id = id;
-    }
 }
