@@ -167,15 +167,8 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
         }
 
         return remove;
-  /*
-        WebrtcMediaConsumer remove = rtpMediaConsumer.remove(consumer.getPrimarySsrc());
-        rtpMediaConsumer.remove(consumer.getRtxSsrc());
-        return remove;*/
     }
 
-    public IProducer getMediaProducer(long primaryMediaStream) {
-        return rtpMediaProducer.get(primaryMediaStream);
-    }
 
     public void sendReadyPackets(long nowNs) {
         for (IConsumer consumer : rtpMediaConsumer.values()) {

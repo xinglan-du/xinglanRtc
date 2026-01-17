@@ -63,10 +63,6 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
         }
     }
 
-    public WebrtcMediaProducer(long primarySsrc, long rtxSsrc, String cname, String streamId) {
-        log.info("生产者初始化：primarySsrc:{},rtxSsrc:{},cname:{},streamId:{}", primarySsrc, rtxSsrc, cname, streamId);
-
-    }
 
 
 

@@ -211,10 +211,6 @@ public class WebrtcNode implements IMediaNode,
     //创建一个消费者
     @Override
     public IConsumer createConsumer(IProducer producer) {
-        long primarySsrc = SsrcGenerator.generateSsrc();
-//        long primarySsrc = producer.getPrimarySsrc();
-        long rtxSsrc = SsrcGenerator.generateSsrc();
-//        long rtxSsrc = producer.getRtxSsrc();
         MediaLineInfo producerMediaLineInfo = producer.getMediaLineInfo();
         MediaLineInfo consumerMediaLineInfo = this.webrtcProcessor.createWebrtcSenderProcessor(producerMediaLineInfo);
         if (consumerMediaLineInfo == null) {
@@ -227,7 +223,7 @@ public class WebrtcNode implements IMediaNode,
 
     @Override
     public boolean removeConsumer(IConsumer consumer) {
-        nodeFlowManager.removeRtpMediaConsumer(consumer);
+        WebrtcMediaConsumer webrtcMediaConsumer = nodeFlowManager.removeRtpMediaConsumer(consumer);
         return this.webrtcProcessor.removeWebrtcSenderProcessor(consumer.getMediaLineInfo());
     }
 
