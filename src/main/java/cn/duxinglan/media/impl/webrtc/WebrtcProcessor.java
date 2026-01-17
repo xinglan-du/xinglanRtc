@@ -197,8 +197,12 @@ public class WebrtcProcessor {
         List<SsrcGroup> readSsrcGroups = readInfo.getSsrcGroups();
         Map<Long, SSRC> readSsrcMap = readInfo.getSsrcMap();
 
+        if (readSsrcGroups == null || readSsrcGroups.isEmpty()) {
+            return null;
+        }
+
         List<SsrcGroup> sendSsrcGroups = new ArrayList<>();
-        Map<Long, SSRC> sendInfoSsrc = new HashMap<>();
+        Map<Long, SSRC> sendInfoSsrc = new LinkedHashMap<>();
 
         for (SsrcGroup readSsrcGroup : readSsrcGroups) {
             SsrcGroup ssrcGroup = new SsrcGroup();
@@ -206,7 +210,6 @@ public class WebrtcProcessor {
             for (Long l : readSsrcGroup.getSsrcList()) {
                 long l1 = SsrcGenerator.generateSsrc();
                 ssrcGroup.addSsrc(l1);
-
 
                 SSRC readSSrc = readSsrcMap.get(l);
                 SSRC ssrc = new SSRC();
@@ -226,7 +229,6 @@ public class WebrtcProcessor {
         MediaLineInfo mediaLineInfo = new MediaLineInfo(producerMediaLineInfo.getMediaInfoType(), getMid(), true, false);
         mediaLineInfo.setSendInfo(info);
 
-
         addWebrtcSenderProcessor(mediaLineInfo);
         return mediaLineInfo;
     }
@@ -239,13 +241,13 @@ public class WebrtcProcessor {
             MediaLineInfo.Info sendInfo = mediaLineInfo.getSendInfo();
             for (Long ssrc : sendInfo.getSsrcMap().keySet()) {
                 for (MediaLineInfo value : mediaLineInfoMap.values()) {
-                    if(value.getSendInfo() != null){
+                    if (value.getSendInfo() != null) {
                         if (value.getSendInfo().getSsrcMap().containsKey(ssrc)) {
                             value.closeSender();
                             isRemove = true;
                         }
                     }
-                    if(value.getReadInfo() != null){
+                    if (value.getReadInfo() != null) {
                         if (value.getReadInfo().getSsrcMap().containsKey(ssrc)) {
                             value.closeSender();
                             isRemove = true;
@@ -276,7 +278,35 @@ public class WebrtcProcessor {
             mediaLineInfoMap.put(mediaLineInfo.getMid(), mediaLineInfo);
         }
     }
+    private void addWebrtcReadProcessor(MediaDescription mediaDescription) {
+        boolean isAdd = false;
+        MediaInfoType type = mediaDescription.getInfo().type();
+        String mId = mediaDescription.getMId().id();
+        MediaLineInfo mediaLineInfo;
+        //先处理当前媒体行是否存在
+        if (mediaLineInfoMap.containsKey(mId)) {
+            mediaLineInfo = mediaLineInfoMap.get(mId);
+        } else {
+            mediaLineInfo = new MediaLineInfo(type, mId, false, true);
+            mediaLineInfoMap.put(mId, mediaLineInfo);
+            isAdd = true;
+        }
 
+        //处理当前媒体行所包含的ssrc，一个媒体行就是一组ssrc的mediaSsrcInfo
+        //TODO 暂时不考虑ssrc修改的问题
+        Map<Long, SSRC> ssrcMap = mediaDescription.getSsrcMap();
+        if (ssrcMap.isEmpty()){
+            return;
+        }
+        MediaLineInfo.Info readInfo = new MediaLineInfo.Info();
+        readInfo.setSsrcMap(ssrcMap);
+        readInfo.setRtpPayloads(mediaDescription.getRtpPayloads());
+        readInfo.setSsrcGroups(mediaDescription.getSsrcGroups());
+        mediaLineInfo.setReadInfo(readInfo);
+        if (isAdd) {
+            webrtcProcessorEvent.onAddWebrtcProducer(mediaLineInfo);
+        }
+    }
 
     public void setRemoteDescription(RTCSessionDescriptionInit rtcSessionDescriptionInit) {
         SessionDescription parse = SdpParser.parse(rtcSessionDescriptionInit.sdp());
@@ -296,36 +326,15 @@ public class WebrtcProcessor {
 
     }
 
+
+
     public void setRemoteDescription(SessionDescription remoteSessionDescription) {
         this.remoteSessionDescription = remoteSessionDescription;
         this.localIceInfo.setRemoteIceInfo(remoteSessionDescription.getMediaDescriptions().getFirst().getIceInfo());
         log.debug("远程的ice信息ufrag：{};pwd:{}", localIceInfo.getRemoteIceInfo().getUfrag(), localIceInfo.getRemoteIceInfo().getPwd());
         List<MediaDescription> mediaDescriptionList = remoteSessionDescription.getMediaDescriptions();
         for (MediaDescription mediaDescription : mediaDescriptionList) {
-            boolean isAdd = false;
-            MediaInfoType type = mediaDescription.getInfo().type();
-            String mId = mediaDescription.getMId().id();
-            MediaLineInfo mediaLineInfo;
-            //先处理当前媒体行是否存在
-            if (mediaLineInfoMap.containsKey(mId)) {
-                mediaLineInfo = mediaLineInfoMap.get(mId);
-            } else {
-                mediaLineInfo = new MediaLineInfo(type, mId, false, true);
-                mediaLineInfoMap.put(mId, mediaLineInfo);
-                isAdd = true;
-            }
-
-            //处理当前媒体行所包含的ssrc，一个媒体行就是一组ssrc的mediaSsrcInfo
-            //TODO 暂时不考虑ssrc修改的问题
-            Map<Long, SSRC> ssrcMap = mediaDescription.getSsrcMap();
-            MediaLineInfo.Info readInfo = new MediaLineInfo.Info();
-            readInfo.setSsrcMap(ssrcMap);
-            readInfo.setRtpPayloads(mediaDescription.getRtpPayloads());
-            readInfo.setSsrcGroups(mediaDescription.getSsrcGroups());
-            mediaLineInfo.setReadInfo(readInfo);
-            if (isAdd) {
-                webrtcProcessorEvent.onAddWebrtcProducer(mediaLineInfo);
-            }
+            addWebrtcReadProcessor(mediaDescription);
         }
     }
 
@@ -408,7 +417,7 @@ public class WebrtcProcessor {
             sb.append(String.format("a=%s", mediaVideoDescription.getMediaDirection().type().value)).append("\r\n");
             String msid = null;
             if (mediaVideoDescription.getMsid() != null) {
-                msid = String.format("stream%s track-%s", mediaVideoDescription.getMsid().streamId(), mediaVideoDescription.getMId().id());
+                msid = String.format("stream%s track-%s", mediaVideoDescription.getMId().id(), mediaVideoDescription.getMId().id());
                 sb.append("a=msid:").append(msid).append("\r\n");
             }
             if (mediaVideoDescription.getRtcpMux() != null && mediaVideoDescription.getRtcpMux().enabled()) {

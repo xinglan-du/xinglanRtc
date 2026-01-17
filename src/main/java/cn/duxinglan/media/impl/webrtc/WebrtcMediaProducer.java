@@ -8,7 +8,6 @@ import cn.duxinglan.media.protocol.rtp.RtpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpTimeState;
 import cn.duxinglan.media.protocol.rtp.TimerRtpPacket;
 import cn.duxinglan.sdp.entity.rtp.RtpPayload;
-import cn.duxinglan.sdp.entity.ssrc.SSRC;
 import cn.duxinglan.sdp.entity.ssrc.SsrcGroup;
 import cn.duxinglan.sdp.entity.ssrc.SsrcGroupType;
 import lombok.Getter;
@@ -69,19 +68,6 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
 
     }
 
-
-
-    @Override
-    public String getCname() {
-        SSRC ssrc = mediaLineInfo.getReadInfo().getSsrcMap().get(this.mainSsrc);
-        return ssrc.getCname();
-    }
-
-    @Override
-    public String getStreamId() {
-        SSRC ssrc = mediaLineInfo.getReadInfo().getSsrcMap().get(this.mainSsrc);
-        return ssrc.getStreamId();
-    }
 
 
     @Override

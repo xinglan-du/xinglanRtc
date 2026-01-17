@@ -217,6 +217,9 @@ public class WebrtcNode implements IMediaNode,
 //        long rtxSsrc = producer.getRtxSsrc();
         MediaLineInfo producerMediaLineInfo = producer.getMediaLineInfo();
         MediaLineInfo consumerMediaLineInfo = this.webrtcProcessor.createWebrtcSenderProcessor(producerMediaLineInfo);
+        if (consumerMediaLineInfo == null) {
+           throw new IllegalArgumentException("未找到有效的媒体行");
+        }
         WebrtcMediaConsumer webrtcMediaConsumer = new WebrtcMediaConsumer(consumerMediaLineInfo);
         nodeFlowManager.addRtpMediaConsumer(webrtcMediaConsumer);
         return webrtcMediaConsumer;

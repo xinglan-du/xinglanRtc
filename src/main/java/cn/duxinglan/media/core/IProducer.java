@@ -3,7 +3,6 @@ package cn.duxinglan.media.core;
 import cn.duxinglan.media.impl.webrtc.MediaLineInfo;
 import cn.duxinglan.media.protocol.rtcp.RtcpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
-import cn.duxinglan.sdp.entity.type.MediaInfoType;
 
 /**
  *
@@ -22,20 +21,6 @@ import cn.duxinglan.sdp.entity.type.MediaInfoType;
 public interface IProducer {
 
 
-    /**
-     * 获取CNAME (Canonical Name)，用于标识在会话中唯一的媒体发送者。
-     *
-     * @return 表示CNAME的字符串值，用于唯一标识媒体会话中的发送方。
-     */
-    String getCname();
-
-    /**
-     * 获取与媒体流相关联的唯一标识符。
-     * 该标识符用于区分不同的媒体流。
-     *
-     * @return 表示媒体流唯一标识符的字符串。
-     */
-    String getStreamId();
 
 
     /**

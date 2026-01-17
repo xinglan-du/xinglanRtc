@@ -60,21 +60,6 @@ public class MediaLineInfo {
         this.sendOnly = false;
     }
 
-    public Info getSendInfo() {
-        return sendInfo;
-    }
-
-    public void setSendInfo(Info sendInfo) {
-        this.sendInfo = sendInfo;
-    }
-
-    public Info getReadInfo() {
-        return readInfo;
-    }
-
-    public void setReadInfo(Info readInfo) {
-        this.readInfo = readInfo;
-    }
 
     @Data
     public static class Info {

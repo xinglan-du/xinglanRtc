@@ -85,6 +85,5 @@ public class WebrtcSdpDefault {
 
     public static MediaLineInfo createNullVideoMediaLineInfo(String mid) {
         return new MediaLineInfo(MediaInfoType.VIDEO, mid, true, false);
-
     }
 }
