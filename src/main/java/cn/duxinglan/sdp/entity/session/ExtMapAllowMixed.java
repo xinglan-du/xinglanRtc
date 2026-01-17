@@ -17,16 +17,4 @@ package cn.duxinglan.sdp.entity.session;
 public record ExtMapAllowMixed(boolean value) {
 
 
-    public static final String KEY = "extmap-allow-mixed";
-
-    public static ExtMapAllowMixed defaultExtMapAllowMixed(Boolean value) {
-        if (value == null) {
-            value = true;
-        }
-        return new ExtMapAllowMixed(value);
-    }
-
-    public static ExtMapAllowMixed parseLine(boolean value) {
-        return new ExtMapAllowMixed(value);
-    }
 }

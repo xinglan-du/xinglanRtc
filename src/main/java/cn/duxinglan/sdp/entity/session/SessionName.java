@@ -1,6 +1,5 @@
 package cn.duxinglan.sdp.entity.session;
 
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -18,16 +17,4 @@ import org.apache.commons.lang3.StringUtils;
  **/
 public record SessionName(String value) {
 
-    public static final String KEY = "s";
-
-    public static SessionName defaultSessionName(String value) {
-        if (StringUtils.isEmpty(value)) {
-            value = "-";
-        }
-        return new SessionName(value);
-    }
-
-    public static SessionName parseLine(String line) {
-        return new SessionName(line);
-    }
 }

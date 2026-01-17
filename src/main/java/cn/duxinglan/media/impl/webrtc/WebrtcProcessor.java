@@ -136,15 +136,15 @@ public class WebrtcProcessor {
 
     private SessionDescription createLocalSessionDescription() throws Exception {
         SessionDescription offer = new SessionDescription();
-        offer.setVersion(Version.defaultVersion());
-        offer.setOrigin(Origin.defaultOrigin("-", CacheModel.getLocalAddress()));
-        offer.setSessionName(SessionName.defaultSessionName(null));
-        offer.setTiming(Timing.defaultTiming());
+        offer.setVersion(WebrtcSdpDefault.defaultVersion());
+        offer.setOrigin(WebrtcSdpDefault.defaultOrigin("-", CacheModel.getLocalAddress()));
+        offer.setSessionName(WebrtcSdpDefault.defaultSessionName(null));
+        offer.setTiming(WebrtcSdpDefault.defaultTiming());
 
-        Bundle bundle = Bundle.defaultBundle();
+        Bundle bundle = WebrtcSdpDefault.defaultBundle();
         offer.setBundle(bundle);
-        offer.setExtMapAllowMixed(ExtMapAllowMixed.defaultExtMapAllowMixed(true));
-        offer.setMSid(MSid.defaultMsid());
+        offer.setExtMapAllowMixed(WebrtcSdpDefault.defaultExtMapAllowMixed(true));
+        offer.setMSid(WebrtcSdpDefault.defaultMsid());
 
         for (Map.Entry<String, MediaLineInfo> mediaInfoMap : mediaLineInfoMap.entrySet()) {
             bundle.addMid(mediaInfoMap.getKey());

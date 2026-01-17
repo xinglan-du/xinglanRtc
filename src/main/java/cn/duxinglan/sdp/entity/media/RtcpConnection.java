@@ -19,16 +19,4 @@ import cn.duxinglan.sdp.entity.type.NetworkType;
  **/
 public record RtcpConnection(int port, NetworkType netType, IpVerType ipVerType, String address) {
 
-
-    public static final String KEY = "rtcp";
-
-    public static RtcpConnection defaultRtcpConnection() {
-        return new RtcpConnection(9, NetworkType.IN, IpVerType.IPV4, "0.0.0.0");
-    }
-
-    public static RtcpConnection parseLine(String line) {
-        String[] split = line.split(" ");
-        return new RtcpConnection(Integer.parseInt(split[0]), NetworkType.fromValue(split[1]), IpVerType.fromValue(split[2]), split[3]);
-
-    }
 }

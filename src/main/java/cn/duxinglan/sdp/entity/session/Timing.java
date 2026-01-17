@@ -1,7 +1,5 @@
 package cn.duxinglan.sdp.entity.session;
 
-import org.apache.commons.lang3.math.NumberUtils;
-
 /**
  *
  * 版权所有 (c) 2025 www.duxinglan.cn
@@ -18,14 +16,5 @@ import org.apache.commons.lang3.math.NumberUtils;
  **/
 public record Timing(long startTime, long endTime) {
 
-    public static final String KEY = "t";
 
-    public static Timing defaultTiming() {
-        return new Timing(0, 0);
-    }
-
-    public static Timing parseLine(String line) {
-        String[] split = line.split(" ");
-        return new Timing(NumberUtils.toLong(split[0]), NumberUtils.toLong(split[1]));
-    }
 }

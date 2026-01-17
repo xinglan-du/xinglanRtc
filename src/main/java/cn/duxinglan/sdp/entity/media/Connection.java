@@ -18,14 +18,5 @@ import cn.duxinglan.sdp.entity.type.NetworkType;
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
 public record Connection(NetworkType netType, IpVerType ipVerType, String address) {
-    public static final String KEY = "c";
 
-    public static Connection defaultConnection() {
-        return new Connection(NetworkType.IN, IpVerType.IPV4, "0.0.0.0");
-    }
-
-    public static Connection parseLine(String line) {
-        String[] split = line.split(" ");
-        return new Connection(NetworkType.fromValue(split[0]), IpVerType.fromValue(split[1]), split[2]); // 默认值为 1
-    }
 }

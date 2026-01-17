@@ -2,7 +2,13 @@ package cn.duxinglan.media.impl.webrtc;
 
 import cn.duxinglan.sdp.entity.media.*;
 import cn.duxinglan.sdp.entity.rtp.*;
+import cn.duxinglan.sdp.entity.session.*;
 import cn.duxinglan.sdp.entity.type.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  *
@@ -85,5 +91,53 @@ public class WebrtcSdpDefault {
 
     public static MediaLineInfo createNullVideoMediaLineInfo(String mid) {
         return new MediaLineInfo(MediaInfoType.VIDEO, mid, true, false);
+    }
+
+    public static Version defaultVersion() {
+        return new Version(0);
+    }
+
+    public static Origin defaultOrigin(String username, InetAddress inetAddress) {
+        if (StringUtils.isEmpty(username)) {
+            username = "-";
+        }
+        AddressType addressType;
+        if (inetAddress instanceof Inet4Address) {
+            addressType = AddressType.IP4;
+        } else {
+            addressType = AddressType.IP6;
+        }
+
+        return new Origin(username, generateSessionId(), 0, NetworkType.IN, addressType, inetAddress.getHostAddress()); // 默认值为 1
+    }
+
+    public static long generateSessionId() {
+        return ThreadLocalRandom.current().nextLong();
+    }
+
+    public static SessionName defaultSessionName(String value) {
+        if (StringUtils.isEmpty(value)) {
+            value = "-";
+        }
+        return new SessionName(value);
+    }
+
+    public static Timing defaultTiming() {
+        return new Timing(0, 0);
+    }
+
+    public static Bundle defaultBundle() {
+        return new Bundle();
+    }
+
+    public static MSid defaultMsid() {
+        return new MSid(MediaStreamType.WMS,null, null);
+    }
+
+    public static ExtMapAllowMixed defaultExtMapAllowMixed(Boolean value) {
+        if (value == null) {
+            value = true;
+        }
+        return new ExtMapAllowMixed(value);
     }
 }

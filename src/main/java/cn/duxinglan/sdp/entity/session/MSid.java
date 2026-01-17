@@ -21,26 +21,6 @@ public record MSid(MediaStreamType type, String streamId, String trackId) {
 
     public static final String KEY = "msid-semantic";
 
-    public static MSid defaultMsid() {
-        return new MSid(MediaStreamType.WMS,null, null);
-    }
-
-    public static MSid defaultMSid(String streamId, String trackId) {
-        return new MSid(MediaStreamType.WMS,streamId, trackId);
-    }
-
-    public static MSid parseLine(String line) {
-        line = line.substring(line.indexOf(":") + 1).trim();
-        String[] parts = line.split(" ");
-
-        String type = parts[0];
-        String streamId = parts.length > 1 ? parts[1] : null;
-        String trackId = parts.length > 2 ? parts[2] : null;
-
-        return new MSid(MediaStreamType.fromValue(type), streamId, trackId);
-    }
-
-
     public String getSDPLine() {
         if (streamId != null && trackId != null) {
             return streamId + " " + trackId;

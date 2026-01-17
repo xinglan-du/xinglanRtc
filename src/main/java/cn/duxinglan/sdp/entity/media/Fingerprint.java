@@ -18,7 +18,4 @@ import cn.duxinglan.sdp.entity.type.SecurityType;
  **/
 public record Fingerprint(SecurityType type, String finger) {
 
-    public static Fingerprint defaultFingerprint(String finger) {
-        return new Fingerprint(SecurityType.SHA256,finger);
-    }
 }

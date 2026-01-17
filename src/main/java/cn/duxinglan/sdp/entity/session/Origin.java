@@ -2,12 +2,6 @@ package cn.duxinglan.sdp.entity.session;
 
 import cn.duxinglan.sdp.entity.type.AddressType;
 import cn.duxinglan.sdp.entity.type.NetworkType;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  *
@@ -26,30 +20,5 @@ import java.util.concurrent.ThreadLocalRandom;
 public record Origin(String username, long sessionId, int sessionVersion, NetworkType networkType,
                      AddressType addressType, String unicastAddress) {
 
-    public static final String KEY = "o";
 
-    public static Origin defaultOrigin(String username, InetAddress inetAddress) {
-        if (StringUtils.isEmpty(username)) {
-            username = "-";
-        }
-        AddressType addressType;
-        if (inetAddress instanceof Inet4Address) {
-            addressType = AddressType.IP4;
-        } else {
-            addressType = AddressType.IP6;
-        }
-
-        return new Origin(username, generateSessionId(), 0, NetworkType.IN, addressType, inetAddress.getHostAddress()); // 默认值为 1
-    }
-
-
-    public static long generateSessionId() {
-        return ThreadLocalRandom.current().nextLong();
-    }
-
-
-    public static Origin parseLine(String line) {
-        String[] split = line.split(" ");
-        return new Origin(split[0], NumberUtils.toLong(split[1]), NumberUtils.toInt(split[2]), NetworkType.fromValue(split[3]), AddressType.fromValue(split[4]), split[5]); // 默认值为 1
-    }
 }

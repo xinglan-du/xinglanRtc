@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,27 +24,11 @@ import java.util.List;
 @Slf4j
 public class Bundle {
 
-    public static final String KEY = "group";
-
-    private static final String BUNDLE_KEY = "BUNDLE";
     /**
      * 每个媒体流定义的唯一标识符
      */
     private List<String> mid = new ArrayList<>();
 
-    public static Bundle parseLine(String line) {
-        String line1 = line.substring(line.indexOf(":") + 1);
-        String[] split = line1.split(" ");
-
-        if (!split[0].equals(BUNDLE_KEY)) {
-            log.error("无法解析:{}", line);
-            return null;
-        }
-
-        Bundle bundle = new Bundle();
-        bundle.setMid(Arrays.stream(split).skip(1).toList());
-        return bundle;
-    }
 
     /**
      * 添加流唯一标识符
@@ -56,8 +39,4 @@ public class Bundle {
         this.mid.add(mid);
     }
 
-
-    public static Bundle defaultBundle() {
-        return new Bundle();
-    }
 }

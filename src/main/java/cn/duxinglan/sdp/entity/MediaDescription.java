@@ -78,10 +78,6 @@ public class MediaDescription {
      */
     private RtcpRsize rtcpRsize;
 
-    /**
-     * 编码器列表
-     */
-//    protected List<VideoCodec> codecs;
 
     /**
      * 表示媒体会话中 RTP 负载类型的映射关系。
@@ -124,24 +120,6 @@ public class MediaDescription {
     private List<SsrcGroup> ssrcGroups = new ArrayList<>();
 
 
-    /**
-     * 返回所有的编解码器payload信息，要严格定义信息
-     */
-    public String getPayloadsToString() {
-        StringBuilder sb = new StringBuilder();
-      /*  for (VideoCodec codec : codecs) {
-            sb.append(codec.getPayloadType()).append(" ").append(codec.getRetransmitPayloadType());
-        }*/
-        return sb.toString();
-    }
-
-
-
-    public void addSSRC(SSRC ssrc) {
-        ssrcMap.put(ssrc.getSsrc(), ssrc);
-    }
-
-
     public void addExtMap(ExtMap extMap) {
         this.extMap.put(extMap.getKey(), extMap);
     }
@@ -152,10 +130,6 @@ public class MediaDescription {
 
     public void addSsrcGroup(SsrcGroup ssrcGroup) {
         this.ssrcGroups.add(ssrcGroup);
-    }
-
-    public List<SSRC> getSsrcList() {
-        return ssrcMap.values().stream().toList();
     }
 
     public void addCandidate(Candidate candidate) {

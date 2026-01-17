@@ -18,13 +18,4 @@ import org.apache.commons.lang3.math.NumberUtils;
  **/
 public record Version(int version) {
 
-    public static final String KEY = "v";
-
-    public static Version defaultVersion() {
-        return new Version(0); // 默认值为 1
-    }
-
-    public static Version parseLine(String first) {
-        return new Version(NumberUtils.toInt(first, 1));
-    }
 }

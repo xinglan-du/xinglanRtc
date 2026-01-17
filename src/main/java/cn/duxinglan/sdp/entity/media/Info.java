@@ -19,15 +19,4 @@ import cn.duxinglan.sdp.entity.type.MediaTransportType;
  **/
 public record Info(MediaInfoType type, int port, MediaTransportType transportType) {
 
-
-    public static final String KEY = "m";
-
-    public static Info defaultInfo(MediaInfoType mediaInfoType) {
-        return new Info(mediaInfoType, 9, MediaTransportType.UDP_TLS_RTP_SAVPF);
-    }
-
-    public static Info parseLine(String line) {
-        String[] split = line.split(" ");
-        return new Info(MediaInfoType.fromValue(split[0]), Integer.parseInt(split[1]), MediaTransportType.fromValue(split[2]));
-    }
 }
