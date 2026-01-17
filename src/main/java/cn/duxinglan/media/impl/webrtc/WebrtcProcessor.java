@@ -207,13 +207,12 @@ public class WebrtcProcessor {
         for (SsrcGroup readSsrcGroup : readSsrcGroups) {
             SsrcGroup ssrcGroup = new SsrcGroup();
             ssrcGroup.setSsrcGroupType(readSsrcGroup.getSsrcGroupType());
-            for (Long l : readSsrcGroup.getSsrcList()) {
-                long l1 = SsrcGenerator.generateSsrc();
-                ssrcGroup.addSsrc(l1);
-
-                SSRC readSSrc = readSsrcMap.get(l);
+            for (Long readSsrc : readSsrcGroup.getSsrcList()) {
+                long generateSsrc = SsrcGenerator.generateSsrc();
+                ssrcGroup.addSsrc(generateSsrc);
+                SSRC readSSrc = readSsrcMap.get(readSsrc);
                 SSRC ssrc = new SSRC();
-                ssrc.setSsrc(l1);
+                ssrc.setSsrc(generateSsrc);
                 ssrc.setCname(readSSrc.getCname());
                 ssrc.setStreamId(readSSrc.getStreamId());
                 sendInfoSsrc.put(ssrc.getSsrc(), ssrc);
