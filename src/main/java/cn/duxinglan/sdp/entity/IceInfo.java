@@ -1,4 +1,4 @@
-package cn.duxinglan.media.impl.sdp;
+package cn.duxinglan.sdp.entity;
 
 import lombok.Data;
 

@@ -1,6 +1,6 @@
 package cn.duxinglan.sdp.parse.media.parser;
 
-import cn.duxinglan.media.impl.sdp.IceInfo;
+import cn.duxinglan.sdp.entity.IceInfo;
 import cn.duxinglan.sdp.entity.MediaDescription;
 import cn.duxinglan.sdp.parse.media.MediaLineParser;
 

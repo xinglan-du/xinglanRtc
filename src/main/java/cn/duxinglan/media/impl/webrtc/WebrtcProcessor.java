@@ -1,6 +1,6 @@
 package cn.duxinglan.media.impl.webrtc;
 
-import cn.duxinglan.media.impl.sdp.IceInfo;
+import cn.duxinglan.sdp.entity.IceInfo;
 import cn.duxinglan.media.module.CacheModel;
 import cn.duxinglan.media.signaling.sdp.RTCSessionDescriptionInit;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.IceHandler;

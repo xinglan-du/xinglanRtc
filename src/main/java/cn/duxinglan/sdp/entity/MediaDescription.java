@@ -1,6 +1,5 @@
 package cn.duxinglan.sdp.entity;
 
-import cn.duxinglan.media.impl.sdp.IceInfo;
 import cn.duxinglan.sdp.entity.media.*;
 import cn.duxinglan.sdp.entity.rtp.RtpPayload;
 import cn.duxinglan.sdp.entity.ssrc.SSRC;

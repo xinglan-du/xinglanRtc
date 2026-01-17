@@ -1,7 +1,7 @@
 package cn.duxinglan.media.transport.nio.webrtc.handler.ice;
 
 import cn.duxinglan.media.core.IMediaNode;
-import cn.duxinglan.media.impl.sdp.IceInfo;
+import cn.duxinglan.sdp.entity.IceInfo;
 import lombok.Getter;
 import lombok.Setter;
 
