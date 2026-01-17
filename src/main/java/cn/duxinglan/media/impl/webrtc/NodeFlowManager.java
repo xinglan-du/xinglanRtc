@@ -3,7 +3,6 @@ package cn.duxinglan.media.impl.webrtc;
 import cn.duxinglan.media.core.IConsumer;
 import cn.duxinglan.media.core.IConsumerMediaSubscriber;
 import cn.duxinglan.media.core.IMediaTransport;
-import cn.duxinglan.media.core.IProducer;
 import cn.duxinglan.media.protocol.rtcp.*;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
 import cn.duxinglan.media.protocol.rtp.SenderRtpPacket;
@@ -173,7 +172,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
     public void sendReadyPackets(long nowNs) {
         for (IConsumer consumer : rtpMediaConsumer.values()) {
             int batch = 0;
-            int maxBatch = 500; // 每轮每个 Consumer 最多发2包
+            int maxBatch = 2; // 每轮每个 Consumer 最多发2包
             SenderRtpPacket senderRtpPacket;
             while (batch < maxBatch && (senderRtpPacket = consumer.pollReady(nowNs)) != null) {
                 mediaTransport.sendRtpPacket(senderRtpPacket);
