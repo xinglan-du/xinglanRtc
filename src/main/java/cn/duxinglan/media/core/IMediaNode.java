@@ -1,6 +1,6 @@
 package cn.duxinglan.media.core;
 
-import cn.duxinglan.media.impl.webrtc.GlobalIProducerMediaRouter;
+import cn.duxinglan.media.impl.webrtc.GlobalProducerMediaRouter;
 import cn.duxinglan.media.impl.webrtc.NodeFlowManager;
 import cn.duxinglan.media.impl.webrtc.WebRTCCertificateGenerator;
 import cn.duxinglan.media.signaling.data.NodeSignalingData;
@@ -50,7 +50,7 @@ public interface IMediaNode {
 
     NodeFlowManager getNodeFlowManager();
 
-    GlobalIProducerMediaRouter getGlobalMediaRouter();
+    GlobalProducerMediaRouter getGlobalMediaRouter();
 
     WebRTCCertificateGenerator.DTLSKeyMaterial getDTLSKeyMaterial();
 

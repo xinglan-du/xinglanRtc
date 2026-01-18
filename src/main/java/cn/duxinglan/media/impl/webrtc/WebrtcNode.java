@@ -92,7 +92,7 @@ public class WebrtcNode implements IMediaNode,
 
     private final NodeFlowManager nodeFlowManager;
 
-    private final GlobalIProducerMediaRouter globalMediaRouter;
+    private final GlobalProducerMediaRouter globalMediaRouter;
 
     public WebrtcNode(ISignaling signaling, int nodeVersion) throws Exception {
         this.signaling = signaling;
@@ -100,7 +100,7 @@ public class WebrtcNode implements IMediaNode,
         this.keyMaterial = WebRTCCertificateGenerator.generateDTLSKeyMaterial();
         webrtcProcessor = new WebrtcProcessor(this.keyMaterial, this);
         nodeFlowManager = new NodeFlowManager();
-        globalMediaRouter = new GlobalIProducerMediaRouter(this);
+        globalMediaRouter = new GlobalProducerMediaRouter(this);
     }
 
     @Override
@@ -240,7 +240,7 @@ public class WebrtcNode implements IMediaNode,
     }
 
     @Override
-    public GlobalIProducerMediaRouter getGlobalMediaRouter() {
+    public GlobalProducerMediaRouter getGlobalMediaRouter() {
         return globalMediaRouter;
     }
 

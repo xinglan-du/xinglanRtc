@@ -11,7 +11,30 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
+ * GlobalIProducerMediaRouter 类用于管理生产者与消费者之间的路由映射关系，
+ * 提供添加、移除生产者及消费者的能力，并支持通过事件通知机制实现生产者与消费者间的交互。
+ * <p>
+ * 核心功能包括：
+ * 1. 维护生产者与消费者的映射关系。
+ * 2. 对生产者及消费者的动态注册与取消注册事件进行管理。
+ * 3. 允许设置媒体节点生产者监听器，在新增生产者时触发相关回调机制。
+ * 4. 实现了 {@link IProducerMediaSubscriber} 接口，用于接收生产者的媒体事件通知。
+ * <p>
+ * 应用场景：
+ * - 实现实时数据流的动态分发，尤其适用于音视频相关的分布式系统。
+ * - 支持多个消费者从同一个生产者中获取媒体流的场景。
+ * <p>
+ * 线程安全性：
+ * - 本类通过 {@code ConcurrentHashMap} 维护生产者与消费者的映射关系，
+ * 提供线程安全的操作，用于处理并发访问场景。
+ * <p>
+ * 构造器：
+ * - 依赖 {@link IMediaNode} 对象创建，用于绑定媒体节点，并提供生产者监听功能。
+ * <p>
+ * 实现接口功能：
+ * - {@link #onRtpPacket(IProducer, TimerRtpPacket)}：当生产者产生 RTP 数据包时触发回调。
+ * - {@link #onSourceTimeReady(IProducer)}：当生产者的源时间信息准备就绪时触发回调。
+ * <p>
  * 版权所有 (c) 2025 www.duxinglan.cn
  * <p>
  * 项目名称：xinglanRtc
@@ -23,9 +46,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * 收费运维、收费技术支持等行为。
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
+ */
 @Slf4j
-public class GlobalIProducerMediaRouter implements IProducerMediaSubscriber {
+public class GlobalProducerMediaRouter implements IProducerMediaSubscriber {
 
     /**
      * IMediaNodeMediaProducerListener 的实例，用于监听媒体节点中的生产者相关事件。
@@ -65,7 +88,7 @@ public class GlobalIProducerMediaRouter implements IProducerMediaSubscriber {
 
     private final IMediaNode mediaNode;
 
-    public GlobalIProducerMediaRouter(IMediaNode mediaNode) {
+    public GlobalProducerMediaRouter(IMediaNode mediaNode) {
         this.mediaNode = mediaNode;
     }
 
@@ -79,7 +102,7 @@ public class GlobalIProducerMediaRouter implements IProducerMediaSubscriber {
     public void addProducer(IProducer producer) {
         producer.setMediaSubscriber(this);
         producerConsumerMap.putIfAbsent(producer, new ArrayList<>());
-        mediaNodeMediaProducerListener.onAddMediaProducer(mediaNode,this, producer);
+        mediaNodeMediaProducerListener.onAddMediaProducer(mediaNode, this, producer);
     }
 
 
@@ -142,7 +165,7 @@ public class GlobalIProducerMediaRouter implements IProducerMediaSubscriber {
      */
     public void setMediaNodeMediaProducerListener(IMediaNodeMediaProducerListener mediaNodeMediaProducerListener) {
         this.mediaNodeMediaProducerListener = mediaNodeMediaProducerListener;
-        producerConsumerMap.forEach((key, _) -> mediaNodeMediaProducerListener.onAddMediaProducer(mediaNode,this, key));
+        producerConsumerMap.forEach((key, _) -> mediaNodeMediaProducerListener.onAddMediaProducer(mediaNode, this, key));
     }
 
     /**
@@ -179,7 +202,7 @@ public class GlobalIProducerMediaRouter implements IProducerMediaSubscriber {
          * @param producer          新增的媒体生产者对象，表示加入媒体节点的生产者实例。
          *                          该对象可能包含媒体流的元数据、控制消息的发送逻辑等功能。
          */
-        void onAddMediaProducer(IMediaNode mediaNode, GlobalIProducerMediaRouter globalMediaRouter, IProducer producer);
+        void onAddMediaProducer(IMediaNode mediaNode, GlobalProducerMediaRouter globalMediaRouter, IProducer producer);
 
     }
 

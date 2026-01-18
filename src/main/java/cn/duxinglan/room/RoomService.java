@@ -3,7 +3,7 @@ package cn.duxinglan.room;
 import cn.duxinglan.media.core.IConsumer;
 import cn.duxinglan.media.core.IMediaNode;
 import cn.duxinglan.media.core.IProducer;
-import cn.duxinglan.media.impl.webrtc.GlobalIProducerMediaRouter;
+import cn.duxinglan.media.impl.webrtc.GlobalProducerMediaRouter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -47,10 +47,10 @@ public class RoomService {
 
     public void addMediaNode(IMediaNode newMediaNode) {
         mediaNodeList.add(newMediaNode);
-        GlobalIProducerMediaRouter globalMediaRouter = newMediaNode.getGlobalMediaRouter();
-        globalMediaRouter.setMediaNodeMediaProducerListener(new GlobalIProducerMediaRouter.IMediaNodeMediaProducerListener() {
+        GlobalProducerMediaRouter globalMediaRouter = newMediaNode.getGlobalMediaRouter();
+        globalMediaRouter.setMediaNodeMediaProducerListener(new GlobalProducerMediaRouter.IMediaNodeMediaProducerListener() {
             @Override
-            public void onAddMediaProducer(IMediaNode currentMediaNode, GlobalIProducerMediaRouter globalMediaRouter, IProducer producer) {
+            public void onAddMediaProducer(IMediaNode currentMediaNode, GlobalProducerMediaRouter globalMediaRouter, IProducer producer) {
                 for (IMediaNode mediaNode : mediaNodeList) {
                     if (mediaNode == currentMediaNode) {
                         continue;
@@ -77,7 +77,7 @@ public class RoomService {
 
     public void removeMediaNode(IMediaNode removeMediaNode) {
         if (mediaNodeList.remove(removeMediaNode)) {
-            GlobalIProducerMediaRouter globalMediaRouter = removeMediaNode.getGlobalMediaRouter();
+            GlobalProducerMediaRouter globalMediaRouter = removeMediaNode.getGlobalMediaRouter();
             List<IConsumer> consumerList = globalMediaRouter.getConsumer();
             for (IConsumer consumer : consumerList) {
                 for (IMediaNode mediaNode : mediaNodeList) {
