@@ -54,7 +54,18 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
 
     public WebrtcMediaProducer(MediaLineInfo mediaLineInfo) {
         this.mediaLineInfo = mediaLineInfo;
-        List<SsrcGroup> ssrcGroups = mediaLineInfo.getReadInfo().getSsrcGroups();
+        initMainSsrc();
+    }
+
+    private void initMainSsrc() {
+        MediaLineInfo.Info readInfo = mediaLineInfo.getReadInfo();
+        if (readInfo.getSsrcMap().size() == 1) {
+            for (Long l : readInfo.getSsrcMap().keySet()) {
+                this.mainSsrc = l;
+                return;
+            }
+        }
+        List<SsrcGroup> ssrcGroups = readInfo.getSsrcGroups();
         for (SsrcGroup ssrcGroup : ssrcGroups) {
             if (ssrcGroup.getSsrcGroupType() == SsrcGroupType.FID) {
                 this.mainSsrc = ssrcGroup.getSsrcList().getFirst();
@@ -62,7 +73,6 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
             }
         }
     }
-
 
 
 

@@ -172,7 +172,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
     public void sendReadyPackets(long nowNs) {
         for (IConsumer consumer : rtpMediaConsumer.values()) {
             int batch = 0;
-            int maxBatch = 2; // 每轮每个 Consumer 最多发2包
+            int maxBatch = 50; // 每轮每个 Consumer 最多发2包
             SenderRtpPacket senderRtpPacket;
             while (batch < maxBatch && (senderRtpPacket = consumer.pollReady(nowNs)) != null) {
                 mediaTransport.sendRtpPacket(senderRtpPacket);

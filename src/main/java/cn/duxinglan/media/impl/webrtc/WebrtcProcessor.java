@@ -110,7 +110,9 @@ public class WebrtcProcessor {
     private SessionDescription remoteSessionDescription;
 
 
-    private Map<Integer, RtpPayload> rtpPayloads = new LinkedHashMap<>();
+    private Map<Integer, RtpPayload> videoRtpPayloads = new LinkedHashMap<>();
+
+    private Map<Integer, RtpPayload> audioRtpPayloads = new LinkedHashMap<>();
 
     public WebrtcProcessor(WebRTCCertificateGenerator.DTLSKeyMaterial keyMaterial, IWebrtcProcessorEvent webrtcProcessorEvent) throws Exception {
         this.keyMaterial = keyMaterial;
@@ -122,18 +124,67 @@ public class WebrtcProcessor {
         try {
             MediaLineInfo nullVideoMediaLineInfo = WebrtcSdpDefault.createNullVideoMediaLineInfo(getMid());
             addWebrtcSenderProcessor(nullVideoMediaLineInfo);
+            MediaLineInfo nullAudioMediaLineInfo = WebrtcSdpDefault.createNullAudioMediaLineInfo(getMid());
+            addWebrtcSenderProcessor(nullAudioMediaLineInfo);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
 
+    /**
+     * 初始化 RTP 负载类型配置。
+     * <p>
+     * 此方法用于将默认的音视频 RTP 负载类型填充到对应的 `audioRtpPayloads` 和 `videoRtpPayloads` 映射中，
+     * 以支持 WebRTC 会话的 RTP 协商。
+     * <p>
+     * 功能描述：
+     * 1. 为视频流配置默认的 VP8 和 VP8 RTX 的 RTP 负载类型。
+     * 2. 为音频流配置默认的 OPUS 和 OPUS RED 的 RTP 负载类型。
+     * 3. 将每个 RTP 负载类型按照其 payload type 值映射到对应的位置。
+     * <p>
+     * 注意事项：
+     * - 该方法需要依赖默认配置类 `WebrtcSdpDefault` 提供 VP8、VP8 RTX、OPUS 和 OPUS RED
+     * 等 RTP 负载类型的定义。
+     * - RTP 配置必须满足 WebRTC 规范要求，并与远端设备协同工作。
+     * <p>
+     * 设计用途：
+     * - 此方法通常在初始化阶段调用，用于完成 RTP 支持的预设。
+     * - 配置完成后，`audioRtpPayloads` 和 `videoRtpPayloads` 将作为 RTP 协商的参考基础，
+     * 用于构建或解析 SDP 描述。
+     */
     private void initRtpPayloads() {
         RtpPayload vp8RtpPayload = WebrtcSdpDefault.defaultVp8RtpPayload();
         RtpPayload vp8RtxRtpPayload = WebrtcSdpDefault.defaultVp8RtxRtpPayload();
-        this.rtpPayloads.put(vp8RtpPayload.getPayloadType(), vp8RtpPayload);
-        this.rtpPayloads.put(vp8RtxRtpPayload.getPayloadType(), vp8RtxRtpPayload);
+        this.videoRtpPayloads.put(vp8RtpPayload.getPayloadType(), vp8RtpPayload);
+        this.videoRtpPayloads.put(vp8RtxRtpPayload.getPayloadType(), vp8RtxRtpPayload);
+
+
+        RtpPayload opusRtpPayload = WebrtcSdpDefault.defaultOpus();
+        RtpPayload opusRedRtpPayload = WebrtcSdpDefault.defaultOpusRed();
+        this.audioRtpPayloads.put(opusRtpPayload.getPayloadType(), opusRtpPayload);
+        this.audioRtpPayloads.put(opusRedRtpPayload.getPayloadType(), opusRedRtpPayload);
+
     }
 
+    /**
+     * 创建本地会话描述(Session Description)的方法。
+     * <p>
+     * 此方法用于生成一个包含本地媒体会话信息的 SessionDescription 对象。
+     * 生成的会话描述符合 WebRTC SDP 协议的要求，包含基本的会话信息及媒体描述信息。
+     * <p>
+     * 功能描述：
+     * - 初始化会话描述的版本、源、会话名称、时间等基本字段。
+     * - 生成 BUNDLE 和扩展映射配置信息。
+     * - 根据现有媒体行信息生成相应的媒体描述并进行绑定。
+     * <p>
+     * 注意事项：
+     * - 方法依赖默认配置类 WebrtcSdpDefault 为会话描述填充默认值。
+     * - 如果媒体信息映射为空或异常，会导致对应的媒体描述生成失败。
+     * - 在执行过程中可能会抛出异常，使用方需要通过异常处理机制捕获。
+     *
+     * @return SessionDescription 生成的本地会话描述对象，包含所有相关媒体流和会话配置。
+     * @throws Exception 如果在生成会话描述过程中出现错误，抛出该异常。
+     */
     private SessionDescription createLocalSessionDescription() throws Exception {
         SessionDescription offer = new SessionDescription();
         offer.setVersion(WebrtcSdpDefault.defaultVersion());
@@ -167,10 +218,18 @@ public class WebrtcProcessor {
         mediaDescription.setMediaDirection(WebrtcSdpDefault.defaultMediaDirection(mediaLineInfo));
         mediaDescription.setRtcpMux(WebrtcSdpDefault.defaultRtcpMux());
 
-
-        for (Map.Entry<Integer, RtpPayload> rtpPayloadEntry : rtpPayloads.entrySet()) {
-            mediaDescription.addRtpPayload(rtpPayloadEntry.getValue());
+        if (mediaLineInfo.getMediaInfoType() == MediaInfoType.VIDEO) {
+            for (Map.Entry<Integer, RtpPayload> rtpPayloadEntry : videoRtpPayloads.entrySet()) {
+                mediaDescription.addRtpPayload(rtpPayloadEntry.getValue());
+            }
         }
+
+        if (mediaLineInfo.getMediaInfoType() == MediaInfoType.AUDIO) {
+            for (Map.Entry<Integer, RtpPayload> rtpPayloadEntry : audioRtpPayloads.entrySet()) {
+                mediaDescription.addRtpPayload(rtpPayloadEntry.getValue());
+            }
+        }
+
 
         if (mediaLineInfo.getSendInfo() != null) {
             MediaLineInfo.Info sendInfo = mediaLineInfo.getSendInfo();
@@ -191,31 +250,53 @@ public class WebrtcProcessor {
     }
 
 
+    /**
+     * 创建一个用于 WebRTC 发送器处理的媒体行信息。
+     * <p>
+     * 此方法根据传入的媒体行的读取信息，生成对应的发送信息，并初始化新的媒体行对象。
+     * 生成的发送信息包含新的 SSRC 映射和 SSRC 组，用于支持 WebRTC 数据流的发送。
+     *
+     * @param producerMediaLineInfo 包含发送器读取配置信息的媒体行对象。其读取信息（readInfo）包括 SSRC 组和 SSRC 映射，
+     *                              用于基于读取信息生成对应的发送信息。
+     * @return MediaLineInfo 如果读取信息包含有效的 SSRC 组，则返回生成好的媒体行对象，
+     * 其中包含发送配置信息；如果读取信息的 SSRC 组为空或无效，则返回 null。
+     */
     public MediaLineInfo createWebrtcSenderProcessor(MediaLineInfo producerMediaLineInfo) {
         MediaLineInfo.Info readInfo = producerMediaLineInfo.getReadInfo();
 
         List<SsrcGroup> readSsrcGroups = readInfo.getSsrcGroups();
         Map<Long, SSRC> readSsrcMap = readInfo.getSsrcMap();
-
-        if (readSsrcGroups == null || readSsrcGroups.isEmpty()) {
+        if (readSsrcMap == null || readSsrcMap.isEmpty()) {
             return null;
         }
 
-        List<SsrcGroup> sendSsrcGroups = new ArrayList<>();
         Map<Long, SSRC> sendInfoSsrc = new LinkedHashMap<>();
+        List<SsrcGroup> sendSsrcGroups = new ArrayList<>();
+
+
+        Map<Long, Long> temporarySsrcMap = new HashMap<>(readSsrcMap.size());
+        for (Map.Entry<Long, SSRC> longSSRCEntry : readSsrcMap.entrySet()) {
+            long generateSsrc = SsrcGenerator.generateSsrc();
+            SSRC readSSrc = longSSRCEntry.getValue();
+            SSRC ssrc = new SSRC();
+            ssrc.setSsrc(generateSsrc);
+            ssrc.setCname(readSSrc.getCname());
+            ssrc.setStreamId(readSSrc.getStreamId());
+            temporarySsrcMap.put(longSSRCEntry.getKey(), generateSsrc);
+            sendInfoSsrc.put(ssrc.getSsrc(), ssrc);
+        }
+
+
 
         for (SsrcGroup readSsrcGroup : readSsrcGroups) {
             SsrcGroup ssrcGroup = new SsrcGroup();
             ssrcGroup.setSsrcGroupType(readSsrcGroup.getSsrcGroupType());
             for (Long readSsrc : readSsrcGroup.getSsrcList()) {
-                long generateSsrc = SsrcGenerator.generateSsrc();
-                ssrcGroup.addSsrc(generateSsrc);
-                SSRC readSSrc = readSsrcMap.get(readSsrc);
-                SSRC ssrc = new SSRC();
-                ssrc.setSsrc(generateSsrc);
-                ssrc.setCname(readSSrc.getCname());
-                ssrc.setStreamId(readSSrc.getStreamId());
-                sendInfoSsrc.put(ssrc.getSsrc(), ssrc);
+                Long sendSsrc = temporarySsrcMap.get(readSsrc);
+                if (sendSsrc != null) {
+                    ssrcGroup.addSsrc(sendSsrc);
+                }
+
             }
             sendSsrcGroups.add(ssrcGroup);
         }
@@ -277,6 +358,7 @@ public class WebrtcProcessor {
             mediaLineInfoMap.put(mediaLineInfo.getMid(), mediaLineInfo);
         }
     }
+
     private void addWebrtcReadProcessor(MediaDescription mediaDescription) {
         boolean isAdd = false;
         MediaInfoType type = mediaDescription.getInfo().type();
@@ -294,7 +376,7 @@ public class WebrtcProcessor {
         //处理当前媒体行所包含的ssrc，一个媒体行就是一组ssrc的mediaSsrcInfo
         //TODO 暂时不考虑ssrc修改的问题
         Map<Long, SSRC> ssrcMap = mediaDescription.getSsrcMap();
-        if (ssrcMap.isEmpty()){
+        if (ssrcMap.isEmpty()) {
             return;
         }
         MediaLineInfo.Info readInfo = new MediaLineInfo.Info();
@@ -311,9 +393,8 @@ public class WebrtcProcessor {
         SessionDescription parse = SdpParser.parse(rtcSessionDescriptionInit.sdp());
         setRemoteDescription(parse);
         if (rtcSessionDescriptionInit.type() == RTCSdpType.OFFER) {
-            SessionDescription answer = null;
             try {
-                answer = createLocalSessionDescription();
+                SessionDescription answer = createLocalSessionDescription();
                 setLocalDescription(answer);
                 webrtcProcessorEvent.onAnswer(new RTCSessionDescriptionInit(RTCSdpType.ANSWER, sessionDescriptionToWebrtcStr(answer)));
             } catch (Exception e) {
@@ -321,10 +402,10 @@ public class WebrtcProcessor {
             }
         } else if (rtcSessionDescriptionInit.type() == RTCSdpType.ANSWER) {
             //暂时不需要做任何处理
+            log.debug("接收到answer:{}", rtcSessionDescriptionInit.sdp());
         }
 
     }
-
 
 
     public void setRemoteDescription(SessionDescription remoteSessionDescription) {
@@ -337,7 +418,13 @@ public class WebrtcProcessor {
         }
     }
 
-    //设置或更新本地使用的offer
+    /**
+     * 设置本地会话描述。
+     * 此方法会处理传入的本地会话描述并更新相应的媒体流信息。
+     *
+     * @param localSessionDescription 传入的本地会话描述对象。包含了媒体描述信息，
+     *                                用于更新媒体行的发送信息（如SSRC映射、RTP负载类型和SSRC组）。
+     */
     public void setLocalDescription(SessionDescription localSessionDescription) {
         this.localSessionDescription = localSessionDescription;
         List<MediaDescription> mediaDescriptionList = localSessionDescription.getMediaDescriptions();
@@ -426,7 +513,20 @@ public class WebrtcProcessor {
 
             StringBuilder mediaSb = new StringBuilder();
             for (RtpPayload rtpPayload : rtpPayloads.values()) {
-                mediaSb.append(String.format("a=rtpmap:%d %s/%d", rtpPayload.getPayloadType(), rtpPayload.getEncodingName(), rtpPayload.getClockRate())).append("\r\n");
+                mediaSb.append("a=rtpmap:")
+                        .append(rtpPayload.getPayloadType())
+                        .append(" ")
+                        .append(rtpPayload.getEncodingName())
+                        .append("/")
+                        .append(rtpPayload.getClockRate());
+
+                if (rtpPayload.getChannels() != null) {
+                    mediaSb.append("/").append(rtpPayload.getChannels());
+                }
+
+                mediaSb.append("\r\n");
+
+//                mediaSb.append(String.format("a=rtpmap:%d %s/%d", rtpPayload.getPayloadType(), rtpPayload.getEncodingName(), rtpPayload.getClockRate())).append("\r\n");
                 if (rtpPayload.getRtcpFeedbacks() != null) {
                     for (RtcpFeedback rtcpFeedback : rtpPayload.getRtcpFeedbacks()) {
                         mediaSb.append("a=rtcp-fb:").append(rtpPayload.getPayloadType());
@@ -443,10 +543,14 @@ public class WebrtcProcessor {
                 if (rtpPayload.getFmtp() != null) {
                     FmtpAttributes fmtp = rtpPayload.getFmtp();
                     if (fmtp.getAssociatedPayloadType() != null) {
-                        mediaSb.append(String.format("a=fmtp:%d apt=%d", rtpPayload.getPayloadType(), fmtp.getAssociatedPayloadType())).append("\r\n");
+                        if (fmtp.isCompatibleSwitch()) {
+                            mediaSb.append(String.format("a=fmtp:%d %d/%d", rtpPayload.getPayloadType(), fmtp.getAssociatedPayloadType(), fmtp.getAssociatedPayloadType())).append("\r\n");
+                        } else {
+                            mediaSb.append(String.format("a=fmtp:%d apt=%d", rtpPayload.getPayloadType(), fmtp.getAssociatedPayloadType())).append("\r\n");
+                        }
                     }
                     if (!fmtp.getParams().isEmpty()) {
-                        mediaSb.append("a=fmtp:").append(rtpPayload.getPayloadType());
+                        mediaSb.append("a=fmtp:").append(rtpPayload.getPayloadType()).append(" ");
                         for (Map.Entry<String, String> stringStringEntry : fmtp.getParams().entrySet()) {
                             mediaSb.append(stringStringEntry.getKey()).append("=").append(stringStringEntry.getValue()).append(";");
                         }

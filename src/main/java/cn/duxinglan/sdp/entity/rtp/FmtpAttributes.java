@@ -24,6 +24,7 @@ import java.util.Map;
 public class FmtpAttributes {
 
 
+    private boolean compatibleSwitch = false;
     /**
      * 用来存放apt相关数据
      */

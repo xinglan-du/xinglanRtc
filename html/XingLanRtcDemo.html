@@ -24,6 +24,8 @@
     let pc; // RTCPeerConnection 全局化，方便复用
     let nodeId;
     let sendTransceiver = null;
+    let audioTransceiver = null;
+
 
     async function init() {
         pc = new RTCPeerConnection();
@@ -39,42 +41,70 @@
 
         // 当远端发来视频流时，显示在 video 标签里
         pc.ontrack = (event) => {
-            let stream;
+            if (event.track.kind === "video") {
+                let stream;
 
-            if (event.streams && event.streams.length > 0) {
-                stream = event.streams[0];
-            } else {
-                stream = new MediaStream([event.track]);
+                if (event.streams && event.streams.length > 0) {
+                    stream = event.streams[0];
+                } else {
+                    stream = new MediaStream([event.track]);
+                }
+
+                const trackId = event.track.id;
+
+                let wrapper = document.querySelector(
+                    `.video-wrapper[data-track-id="${trackId}"]`
+                );
+
+                if (!wrapper) {
+                    wrapper = document.createElement("div");
+                    wrapper.className = "video-wrapper";
+                    wrapper.dataset.trackId = trackId;
+
+                    const video = document.createElement("video");
+                    video.autoplay = true;
+                    video.playsInline = true;
+                    video.style.width = "300px";
+                    video.srcObject = stream;
+
+                    const info = document.createElement("div");
+                    info.className = "ssrc-info";
+                    info.innerText = "SSRC: -";
+
+                    wrapper.appendChild(video);
+                    wrapper.appendChild(info);
+
+                    document
+                        .getElementById("remoteVideosContainer")
+                        .appendChild(wrapper);
+                }
             }
 
-            const trackId = event.track.id;
+            if (event.track.kind === "audio") {
+                const stream = event.streams[0] || new MediaStream([event.track]);
+                const trackId = event.track.id;
 
-            let wrapper = document.querySelector(
-                `.video-wrapper[data-track-id="${trackId}"]`
-            );
+                let wrapper = document.querySelector(
+                    `.audio-wrapper[data-track-id="${trackId}"]`
+                );
 
-            if (!wrapper) {
-                wrapper = document.createElement("div");
-                wrapper.className = "video-wrapper";
-                wrapper.dataset.trackId = trackId;
+                if (!wrapper) {
+                    wrapper = document.createElement("div");
+                    wrapper.className = "audio-wrapper";
+                    wrapper.dataset.trackId = trackId;
 
-                const video = document.createElement("video");
-                video.autoplay = true;
-                video.playsInline = true;
-                video.style.width = "300px";
-                video.srcObject = stream;
+                    const audio = document.createElement("audio");
+                    audio.autoplay = true;
+                    audio.controls = true;
+                    audio.srcObject = stream;
 
-                const info = document.createElement("div");
-                info.className = "ssrc-info";
-                info.innerText = "SSRC: -";
-
-                wrapper.appendChild(video);
-                wrapper.appendChild(info);
-
-                document
-                    .getElementById("remoteVideosContainer")
-                    .appendChild(wrapper);
+                    wrapper.appendChild(audio);
+                    document
+                        .getElementById("remoteAudiosContainer")
+                        .appendChild(wrapper);
+                }
             }
+
         };
 
 
@@ -87,8 +117,7 @@
 
         await navigator.mediaDevices.getUserMedia({video: true, audio: false});
 
-        // ⭐ 加载摄像头下拉框
-        await loadCameras();
+        await loadDevices();
 
 
     }
@@ -97,7 +126,7 @@
         // 1. 创建 RTCPeerConnection
         const pc = new RTCPeerConnection({
             iceServers: [
-                { urls: "stun:stun.l.google.com:19302" }
+                {urls: "stun:stun.l.google.com:19302"}
             ]
         });
 
@@ -260,6 +289,33 @@
         });
     }
 
+    async function loadDevices() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+
+        const cameraSelect = document.getElementById("cameraSelect");
+        const micSelect = document.getElementById("micSelect");
+
+        cameraSelect.innerHTML = "";
+        micSelect.innerHTML = "";
+
+        devices.forEach(d => {
+            if (d.kind === "videoinput") {
+                const opt = document.createElement("option");
+                opt.value = d.deviceId;
+                opt.text = d.label || `摄像头 ${cameraSelect.length + 1}`;
+                cameraSelect.appendChild(opt);
+            }
+
+            if (d.kind === "audioinput") {
+                const opt = document.createElement("option");
+                opt.value = d.deviceId;
+                opt.text = d.label || `麦克风 ${micSelect.length + 1}`;
+                micSelect.appendChild(opt);
+            }
+        });
+    }
+
+
     async function loadCameras() {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const cameraSelect = document.getElementById("cameraSelect");
@@ -302,7 +358,7 @@
         // 生成 offer（你自行发送）
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-
+        console.log("发送offer", offer);
         sendMessage({
             type: 1,
             data: {
@@ -319,8 +375,41 @@
         // sendMessageOffer(offer);
     }
 
+    async function switchMic() {
+        const micId = document.getElementById("micSelect").value;
 
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {deviceId: {exact: micId}}
+        });
 
+        const newAudioTrack = stream.getAudioTracks()[0];
+
+        if (!audioTransceiver) {
+            audioTransceiver = pc.addTransceiver(newAudioTrack, {
+                direction: "sendonly"
+            });
+            console.log("创建 audio sendonly m-line");
+        } else {
+            await audioTransceiver.sender.replaceTrack(newAudioTrack);
+            console.log("替换 audio 轨道");
+        }
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        sendMessage({
+            type: 1,
+            data: {
+                nodeId: nodeId,
+                data: {
+                    type: 0,
+                    data: offer
+                }
+            }
+        });
+
+        console.log("音频 Offer 已发送");
+    }
 
 
     window.onload = connect;
@@ -339,6 +428,13 @@
 <button onclick="switchCamera()">切换摄像头/生成Offer</button>
 <button onclick="printAllSSRC()">获取发送/接收 SSRC</button>
 <button onclick="createSDP()">打印SDP</button>
+<h3>选择麦克风</h3>
+<label for="micSelect">选择麦克风</label>
+<select id="micSelect"></select>
+<button onclick="switchMic()">切换麦克风/生成Offer</button>
+
+<h3>远端音频</h3>
+<div id="remoteAudiosContainer"></div>
 <h2>远端视频</h2>
 <div id="remoteVideosContainer"></div>
 

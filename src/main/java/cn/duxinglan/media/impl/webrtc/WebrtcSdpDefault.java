@@ -65,25 +65,6 @@ public class WebrtcSdpDefault {
         return new RtcpMux(true);
     }
 
-    public static RtpPayload defaultVp8RtpPayload() {
-        RtpPayload rtpPayload = new RtpPayload();
-        rtpPayload.setPayloadType(96);
-        rtpPayload.setEncodingName("VP8");
-        rtpPayload.setClockRate(90000);
-        rtpPayload.addRtcpFb(new RtcpFeedback(RtcpFeedbackType.CCM, RtcpFeedbackParam.PLI));
-        rtpPayload.addRtcpFb(new RtcpFeedback(RtcpFeedbackType.NACK));
-        rtpPayload.addRtcpFb(new RtcpFeedback(RtcpFeedbackType.NACK, RtcpFeedbackParam.PLI));
-        return rtpPayload;
-    }
-
-    public static RtpPayload defaultVp8RtxRtpPayload() {
-        RtpPayload rtpPayload = new RtpPayload();
-        rtpPayload.setPayloadType(97);
-        rtpPayload.setEncodingName("rtx");
-        rtpPayload.setClockRate(90000);
-        rtpPayload.setFmtp(new FmtpAttributes(96));
-        return rtpPayload;
-    }
 
     public static MSId defaultMsid(String streamId) {
         return new MSId(streamId, null);
@@ -91,6 +72,10 @@ public class WebrtcSdpDefault {
 
     public static MediaLineInfo createNullVideoMediaLineInfo(String mid) {
         return new MediaLineInfo(MediaInfoType.VIDEO, mid, true, false);
+    }
+
+    public static MediaLineInfo createNullAudioMediaLineInfo(String mid) {
+        return new MediaLineInfo(MediaInfoType.AUDIO, mid, true, false);
     }
 
     public static Version defaultVersion() {
@@ -110,6 +95,7 @@ public class WebrtcSdpDefault {
 
         return new Origin(username, generateSessionId(), 0, NetworkType.IN, addressType, inetAddress.getHostAddress()); // 默认值为 1
     }
+
 
     public static long generateSessionId() {
         return ThreadLocalRandom.current().nextLong();
@@ -131,7 +117,7 @@ public class WebrtcSdpDefault {
     }
 
     public static MSid defaultMsid() {
-        return new MSid(MediaStreamType.WMS,null, null);
+        return new MSid(MediaStreamType.WMS, null, null);
     }
 
     public static ExtMapAllowMixed defaultExtMapAllowMixed(Boolean value) {
@@ -139,5 +125,54 @@ public class WebrtcSdpDefault {
             value = true;
         }
         return new ExtMapAllowMixed(value);
+    }
+
+
+    public static RtpPayload defaultVp8RtpPayload() {
+        RtpPayload rtpPayload = new RtpPayload();
+        rtpPayload.setPayloadType(96);
+        rtpPayload.setEncodingName("VP8");
+        rtpPayload.setClockRate(90000);
+        rtpPayload.addRtcpFb(new RtcpFeedback(RtcpFeedbackType.CCM, RtcpFeedbackParam.PLI));
+        rtpPayload.addRtcpFb(new RtcpFeedback(RtcpFeedbackType.NACK));
+        rtpPayload.addRtcpFb(new RtcpFeedback(RtcpFeedbackType.NACK, RtcpFeedbackParam.PLI));
+        return rtpPayload;
+    }
+
+    public static RtpPayload defaultVp8RtxRtpPayload() {
+        RtpPayload rtpPayload = new RtpPayload();
+        rtpPayload.setPayloadType(97);
+        rtpPayload.setEncodingName("rtx");
+        rtpPayload.setClockRate(90000);
+        rtpPayload.setFmtp(new FmtpAttributes(96));
+        return rtpPayload;
+    }
+
+    public static RtpPayload defaultOpus() {
+        RtpPayload rtpPayload = new RtpPayload();
+        rtpPayload.setPayloadType(111);
+        rtpPayload.setEncodingName("opus");
+        rtpPayload.setClockRate(48000);
+        rtpPayload.setChannels(2);
+        rtpPayload.addRtcpFb(new RtcpFeedback(RtcpFeedbackType.TRANSPORT_CC));
+        FmtpAttributes fmtp = new FmtpAttributes();
+        fmtp.putParam("minptime", "10");
+        fmtp.putParam("useinbandfec", "1");
+        rtpPayload.setFmtp(fmtp);
+        return rtpPayload;
+    }
+
+    public static RtpPayload defaultOpusRed() {
+        RtpPayload rtpPayload = new RtpPayload();
+        rtpPayload.setPayloadType(63);
+        rtpPayload.setEncodingName("red");
+        rtpPayload.setClockRate(48000);
+        rtpPayload.setChannels(2);
+
+        FmtpAttributes fmtp = new FmtpAttributes();
+        fmtp.setAssociatedPayloadType(111);
+        fmtp.setCompatibleSwitch(true);
+        rtpPayload.setFmtp(fmtp);
+        return rtpPayload;
     }
 }
