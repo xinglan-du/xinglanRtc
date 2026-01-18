@@ -110,9 +110,9 @@ public class WebrtcProcessor {
     private SessionDescription remoteSessionDescription;
 
 
-    private Map<Integer, RtpPayload> videoRtpPayloads = new LinkedHashMap<>();
+    private LinkedHashMap<Integer, RtpPayload> videoRtpPayloads = new LinkedHashMap<>();
 
-    private Map<Integer, RtpPayload> audioRtpPayloads = new LinkedHashMap<>();
+    private LinkedHashMap<Integer, RtpPayload> audioRtpPayloads = new LinkedHashMap<>();
 
     public WebrtcProcessor(WebRTCCertificateGenerator.DTLSKeyMaterial keyMaterial, IWebrtcProcessorEvent webrtcProcessorEvent) throws Exception {
         this.keyMaterial = keyMaterial;
@@ -153,16 +153,10 @@ public class WebrtcProcessor {
      * 用于构建或解析 SDP 描述。
      */
     private void initRtpPayloads() {
-        RtpPayload vp8RtpPayload = WebrtcSdpDefault.defaultVp8RtpPayload();
-        RtpPayload vp8RtxRtpPayload = WebrtcSdpDefault.defaultVp8RtxRtpPayload();
-        this.videoRtpPayloads.put(vp8RtpPayload.getPayloadType(), vp8RtpPayload);
-        this.videoRtpPayloads.put(vp8RtxRtpPayload.getPayloadType(), vp8RtxRtpPayload);
+        WebrtcSdpDefault.defaultVideoRtpPayload(this.videoRtpPayloads);
 
+        WebrtcSdpDefault.defaultAudioRtpPayload(this.audioRtpPayloads);
 
-        RtpPayload opusRtpPayload = WebrtcSdpDefault.defaultOpus();
-        RtpPayload opusRedRtpPayload = WebrtcSdpDefault.defaultOpusRed();
-        this.audioRtpPayloads.put(opusRtpPayload.getPayloadType(), opusRtpPayload);
-        this.audioRtpPayloads.put(opusRedRtpPayload.getPayloadType(), opusRedRtpPayload);
 
     }
 
@@ -285,7 +279,6 @@ public class WebrtcProcessor {
             temporarySsrcMap.put(longSSRCEntry.getKey(), generateSsrc);
             sendInfoSsrc.put(ssrc.getSsrc(), ssrc);
         }
-
 
 
         for (SsrcGroup readSsrcGroup : readSsrcGroups) {
@@ -554,6 +547,8 @@ public class WebrtcProcessor {
                         for (Map.Entry<String, String> stringStringEntry : fmtp.getParams().entrySet()) {
                             mediaSb.append(stringStringEntry.getKey()).append("=").append(stringStringEntry.getValue()).append(";");
                         }
+
+                        mediaSb.deleteCharAt(mediaSb.length() - 1);
 
                         mediaSb.append("\r\n");
                     }
