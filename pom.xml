@@ -6,7 +6,7 @@
 
     <groupId>cn.duxinglan</groupId>
     <artifactId>rtc</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
