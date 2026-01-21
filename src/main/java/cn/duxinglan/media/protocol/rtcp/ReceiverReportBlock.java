@@ -24,10 +24,20 @@ public class ReceiverReportBlock {
 
     private int fractionLost;
 
-    private int lost;
+    private long lost;
 
     long extHighestSeq;
+    /**
+     * 表示接收报告块（ReceiverReportBlock）中的周期数 (Cycles)。
+     * <p>
+     * Cycles 是一个 16 位的字段，用于在序列号回绕超过 0xffff 时记录
+     * 的高位值。它与 extHighestSeq 字段一起表示自会话开始以来接收到的
+     * RTP 包的累计序列号。
+     * <p>
+     * 该字段在 RTP 数据分析时用于检测序列号的完整性并评估传输质量。
+     */
     private int cycles;
+
     private int maxSeq;
 
     private long jitter;

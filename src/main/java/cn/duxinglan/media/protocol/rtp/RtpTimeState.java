@@ -94,9 +94,9 @@ public class RtpTimeState {
     /**
      * 更新 RTP 时间状态，利用 RTCP 发件人报告 (Sender Report) 中的 NTP 时间和 RTP 时间戳。
      *
-     * @param ntpSec 表示 NTP (Network Time Protocol) 时间戳的秒数部分。
+     * @param ntpSec  表示 NTP (Network Time Protocol) 时间戳的秒数部分。
      * @param ntpFrac 表示 NTP (Network Time Protocol) 时间戳的小数部分。
-     * @param rtpTs 表示 RTP (Real-time Transport Protocol) 基准时间戳，用于同步媒体流的时间。
+     * @param rtpTs   表示 RTP (Real-time Transport Protocol) 基准时间戳，用于同步媒体流的时间。
      */
     public void updateFromSr(long ntpSec, long ntpFrac, long rtpTs) {
         this.ntpSec = ntpSec;
@@ -106,5 +106,9 @@ public class RtpTimeState {
                 ntpSec * 1_000_000_000L
                 + ((ntpFrac * 1_000_000_000L) >>> 32);
         this.hasSr = true;
+    }
+
+    public Long toSourceTimeNs(long timestamp, int clockRate) {
+        return isHasSr()?getBaseNtpNs() + (timestamp - getBaseRtpTs()) * 1_000_000_000L / clockRate:null;
     }
 }

@@ -234,7 +234,7 @@ public class SRtcpFactory {
         for (ReceiverReportBlock receiverReportBlock : receiverReportBlocks) {
             byteBuf.writeInt((int) (receiverReportBlock.getSourceSsrc() & 0xFFFFFFFFL));
             byteBuf.writeByte(receiverReportBlock.getFractionLost());
-            byteBuf.writeMedium(receiverReportBlock.getLost());
+            byteBuf.writeMedium((int) (receiverReportBlock.getLost() & 0x00FFFFFF));
             byteBuf.writeInt((int) (receiverReportBlock.getExtHighestSeq() & 0xFFFFFFFFL));
             byteBuf.writeInt((int) (receiverReportBlock.getJitter() & 0xFFFFFFFFL));
             byteBuf.writeInt((int) (receiverReportBlock.getLsr() & 0xFFFFFFFFL));
