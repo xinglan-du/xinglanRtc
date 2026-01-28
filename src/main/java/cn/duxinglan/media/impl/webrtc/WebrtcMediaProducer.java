@@ -5,6 +5,7 @@ import cn.duxinglan.media.core.IProducer;
 import cn.duxinglan.media.core.IProducerMediaSubscriber;
 import cn.duxinglan.media.impl.webrtc.rtcp.ReceiverReportSnapshot;
 import cn.duxinglan.media.impl.webrtc.rtcp.RtpReceiveStats;
+import cn.duxinglan.media.impl.webrtc.rtcp.SequenceNumberTracker;
 import cn.duxinglan.media.protocol.rtcp.*;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpTimeState;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -86,6 +88,9 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
 
     private final RtpReceiveStats receiveStats = new RtpReceiveStats();
 
+    private final SequenceNumberTracker seqTracker = new SequenceNumberTracker();
+
+
 
     public WebrtcMediaProducer(MediaLineInfo mediaLineInfo) {
         this.mediaLineInfo = mediaLineInfo;
@@ -132,6 +137,8 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
 
         long arrivalTimeNs = System.nanoTime();
         receiveStats.onRtpPacket(packet,arrivalTimeNs,rtpPayload.getClockRate());
+
+        seqTracker.receive(packet.getSequenceNumber());
 
 
         TimerRtpPacket timerRtpPacket;
