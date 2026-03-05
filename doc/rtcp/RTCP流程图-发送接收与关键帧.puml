@@ -1,0 +1,16 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+participant "客户端(Chrome)" as Client
+participant "SFU" as Sfu
+
+== 客户端同时发送/接收/关键帧 ==
+Client <-> Sfu: RTP媒体流
+loop 周期性RTCP
+Client <-> Sfu: SR(200) + SDES(202)\n发送端统计+源描述
+Client <-> Sfu: RR(201) + PSFB(206)\n接收端统计+负载反馈
+end
+Client <-> Sfu: PSFB(206) PLI\n关键帧请求(需要时和RR携带在一起)
+@enduml

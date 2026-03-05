@@ -1,0 +1,16 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+participant "客户端A(接收端)" as ClientA
+participant "客户端B(发送端)" as ClientB
+participant "SFU" as Sfu
+
+== 客户端请求关键帧 ==
+Sfu -> ClientA: RTP媒体流(丢帧/画面异常)
+ClientA -> Sfu: PSFB(206) PLI\n请求关键帧
+Sfu -> ClientB: PSFB(206) PLI\n请求关键帧
+ClientB -> Sfu: RTP媒体流(IDR关键帧)
+Sfu -> ClientA: RTP媒体流(IDR关键帧)
+@enduml

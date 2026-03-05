@@ -1,0 +1,14 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+participant "客户端(Chrome)" as Client
+participant "SFU" as Sfu
+
+== Sfu作为接收者 ==
+Client -> Sfu: RTP媒体流
+loop 周期性RTCP
+Sfu -> Client: RR(201) + PSFB(206)\n接收端统计+负载反馈
+end
+@enduml
