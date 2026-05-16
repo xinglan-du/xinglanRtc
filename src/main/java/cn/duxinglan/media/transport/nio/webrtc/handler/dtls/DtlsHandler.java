@@ -1,8 +1,9 @@
 package cn.duxinglan.media.transport.nio.webrtc.handler.dtls;
 
 import cn.duxinglan.media.core.IMediaTransport;
-import cn.duxinglan.media.impl.webrtc.WebRTCCertificateGenerator;
-import cn.duxinglan.media.transport.nio.webrtc.DtlsContext;
+import cn.duxinglan.media.impl.dtls.DTLSKeyMaterial;
+import cn.duxinglan.media.impl.dtls.DtlsContext;
+import cn.duxinglan.media.transport.nio.webrtc.DtlsOutputPacket;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -21,13 +22,16 @@ import java.io.IOException;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public class DtlsHandler {
+public class DtlsHandler implements DtlsContext.DtlsEvent {
 
 
     private final DtlsContext dtlsContext;
 
-    public DtlsHandler(IMediaTransport mediaTransport, WebRTCCertificateGenerator.DTLSKeyMaterial keyMaterial, DtlsContext.DtlsShakeHandsCallback dtlsShakeHandsCallback) {
-        this.dtlsContext = new DtlsContext(mediaTransport, keyMaterial, dtlsShakeHandsCallback);
+    private final IMediaTransport mediaTransport;
+
+    public DtlsHandler(IMediaTransport mediaTransport, DTLSKeyMaterial keyMaterial, DtlsContext.DtlsShakeHandsCallback dtlsShakeHandsCallback) {
+        this.mediaTransport = mediaTransport;
+        this.dtlsContext = new DtlsContext(this, keyMaterial, dtlsShakeHandsCallback);
     }
 
     public void processDtls(ByteBuf buf) throws IOException {
@@ -36,5 +40,10 @@ public class DtlsHandler {
         buf.getBytes(buf.readerIndex(), bytes);
         //DTLS直接使用bc库
         dtlsContext.processData(bytes);
+    }
+
+    @Override
+    public void onMessage(DtlsOutputPacket dtlsOutputPacket) {
+        mediaTransport.writePackage(dtlsOutputPacket);
     }
 }

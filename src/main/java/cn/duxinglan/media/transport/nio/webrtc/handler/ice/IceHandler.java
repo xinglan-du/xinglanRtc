@@ -11,6 +11,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -95,30 +96,30 @@ public class IceHandler {
      */
     public void processIce(ByteBuf buf, InetSocketAddress remoteAddress) {
         //先将数据转换一下
-        StunMessage message = StunMessage.decode(buf);
-        if (message == null) {
-            return;
-        }
-        try {
-            UsernameAttribute attributes = (UsernameAttribute) message.getAttributes(AttributeType.USERNAME);
-            String[] username = attributes.getUsername().split(":");
-            LocalIceInfo localIceInfo = ICE_INFO_MAP.get(username[0]);
-            if (localIceInfo == null) {
-                return;
-            }
-            String password = localIceInfo.getLocalIceInfo().getPwd();
-            log.debug("这次stun消息使用的用户名:{};密码:{}", attributes.getUsername(), password);
-            //校验数据
-            if (verifyData(message, password)) {
-                //这里要标志当前端口已经认证成功
-                StunMessage bindingSuccessMessage = StunMessage.createBindingSuccessMessage(password, message, remoteAddress);
-                PriorityAttribute priorityAttribute = (PriorityAttribute) message.getAttributes(AttributeType.PRIORITY);
-                iceHandlerCallback.callback(bindingSuccessMessage, localIceInfo, priorityAttribute.getPriority());
-            }
+        Optional<StunMessage> decode = StunMessage.decode(buf);
+        decode.ifPresent(message -> {
+            try {
+                UsernameAttribute attributes = (UsernameAttribute) message.getAttributes(AttributeType.USERNAME);
+                String[] username = attributes.getUsername().split(":");
+                LocalIceInfo localIceInfo = ICE_INFO_MAP.get(username[0]);
+                if (localIceInfo == null) {
+                    return;
+                }
+                String password = localIceInfo.getLocalIceInfo().getPwd();
+                log.debug("这次stun消息使用的用户名:{};密码:{}", attributes.getUsername(), password);
+                //校验数据
+                if (verifyData(message, password)) {
+                    //这里要标志当前端口已经认证成功
+                    StunMessage bindingSuccessMessage = StunMessage.createBindingSuccessMessage(password, message, remoteAddress);
+                    PriorityAttribute priorityAttribute = (PriorityAttribute) message.getAttributes(AttributeType.PRIORITY);
+                    iceHandlerCallback.callback(bindingSuccessMessage, localIceInfo, priorityAttribute.getPriority());
+                }
 
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        });
+
 
     }
 

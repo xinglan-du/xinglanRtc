@@ -1,6 +1,4 @@
-package cn.duxinglan.sdp.entity.type;
-
-/**
+/*
  *
  * 版权所有 (c) 2025 www.duxinglan.cn
  * <p>
@@ -13,11 +11,26 @@ package cn.duxinglan.sdp.entity.type;
  * 收费运维、收费技术支持等行为。
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
+ */
+package cn.duxinglan.sdp.entity.type;
+
+/**
+ * 表示媒体信息的类型枚举类。
+ * 包含两种类型："video" 表示视频，"audio" 表示音频。
+ */
 public enum MediaInfoType {
 
-
+    /**
+     * 视频媒体类型的枚举值。
+     * 表示媒体信息中的视频类型，常用于区分音视频流的分类。
+     * 该枚举常量定义为 "video"。
+     */
     VIDEO("video"),
+    /**
+     * 音频媒体类型的枚举值。
+     * 表示媒体信息中的音频类型，常用于区分音视频流的分类。
+     * 该枚举常量定义为 "audio"。
+     */
     AUDIO("audio");
 
     public final String value;

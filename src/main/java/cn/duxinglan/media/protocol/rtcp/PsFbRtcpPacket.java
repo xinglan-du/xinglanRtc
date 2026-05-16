@@ -70,5 +70,20 @@ public class PsFbRtcpPacket extends RtcpPacket {
      */
     private ByteBuf fci;
 
+    /**
+     * 表示 RTCP 协议中的 FIR (Full Intra Request) 条目。
+     * FirEntry 用于存储与特定同步源标识符 (SSRC) 相关联的关键信息，
+     * 如请求序列号和保留字段。
+     * <p>
+     * FIR 是一种 RTCP 扩展，通常用于请求视频流发送方立即生成关键帧 (I-frame)，
+     * 以便接收方恢复数据流或适应带宽变化。
+     * <p>
+     * 本字段承载了一个 FirEntry 的实例，具体信息如下：
+     * - ssrc：标识需要生成关键帧的同步源。
+     * - seqNr：请求的序列号，用于区分不同的 FIR 请求。
+     * - reserved：保留字段，供未来扩展使用。
+     * <p>
+     * 通过使用该字段，可以在 FIR 反馈消息中封装和传递这些信息。
+     */
     private FirEntry firEntry;
 }

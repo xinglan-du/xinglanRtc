@@ -89,12 +89,13 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
                     continue;
                 }
                 case PsFbRtcpPacket psFbRtcpPacket -> {
-                    if (psFbRtcpPacket.getFmt() != 1) {
-                        log.debug("fmt为{}，不处理请求关键帧的接口", psFbRtcpPacket.getFmt());
-                        continue;
-                    }
                     ssrc = psFbRtcpPacket.getMediaSsrc();
-                    log.debug("接收到申请关键帧{}", psFbRtcpPacket);
+                    if (psFbRtcpPacket.getPayloadType() == RtcpPayloadType.PSFB.value
+                        && psFbRtcpPacket.getFmt() == 1) {
+                        log.debug("接收到申请关键帧{}", psFbRtcpPacket);
+                    } else {
+                        log.debug("接收到RTCP反馈 payloadType={}, fmt={}", psFbRtcpPacket.getPayloadType(), psFbRtcpPacket.getFmt());
+                    }
                 }
                 case ReceiverReportRtcpPacket receiverReportRtcpPacket -> {
                     log.debug("暂时不处理接受处理");
@@ -160,7 +161,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
         for (Long aLong : longs) {
 
             WebrtcMediaConsumer remove1 = rtpMediaConsumer.remove(aLong);
-            if (remove == null){
+            if (remove == null) {
                 remove = remove1;
             }
         }
@@ -188,7 +189,7 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
      * @param nowNs 当前的时间戳，以纳秒为单位，用于生成 RTCP 报告和其他时间相关计算。
      */
     public void sendReadyRtcpPackets(long nowNs) {
-        for (Map.Entry<Long, WebrtcMediaConsumer> longWebrtcMediaConsumerEntry : rtpMediaConsumer.entrySet()) {
+        /*for (Map.Entry<Long, WebrtcMediaConsumer> longWebrtcMediaConsumerEntry : rtpMediaConsumer.entrySet()) {
             WebrtcMediaConsumer webrtcMediaConsumer = longWebrtcMediaConsumerEntry.getValue();
 
             if (webrtcMediaConsumer.getTimeState() != WebrtcMediaConsumer.TimeState.RUNNING) {
@@ -207,21 +208,26 @@ public class NodeFlowManager implements IConsumerMediaSubscriber {
             if (!rtcpPackets.isEmpty()) {
                 mediaTransport.sendRtcpPackets(rtcpPackets);
             }
-        }
+        }*/
 
         for (Map.Entry<Long, WebrtcMediaProducer> longWebrtcMediaProducerEntry : rtpMediaProducer.entrySet()) {
             WebrtcMediaProducer webrtcMediaProducer = longWebrtcMediaProducerEntry.getValue();
-
             List<RtcpPacket> rtcpPackets = new ArrayList<>();
-            ReceiverReportRtcpPacket receiverReportRtcpPacket = webrtcMediaProducer.consumeReceiverReport(nowNs);
+            //RR
+          /*  ReceiverReportRtcpPacket receiverReportRtcpPacket = webrtcMediaProducer.consumeReceiverReport(nowNs);
             if (receiverReportRtcpPacket != null) {
                 rtcpPackets.add(receiverReportRtcpPacket);
-            }
-
+            }*/
+            //关键帧
             PsFbRtcpPacket psFbRtcpPacket = webrtcMediaProducer.consumePli();
             if (psFbRtcpPacket != null) {
                 rtcpPackets.add(psFbRtcpPacket);
             }
+            //丢包重传
+            /*PsFbRtcpPacket nackPacket = webrtcMediaProducer.consumeNack();
+            if (nackPacket != null) {
+                rtcpPackets.add(nackPacket);
+            }*/
             if (!rtcpPackets.isEmpty()) {
                 mediaTransport.sendRtcpPackets(rtcpPackets);
             }

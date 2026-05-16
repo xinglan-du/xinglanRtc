@@ -4,8 +4,10 @@ import cn.duxinglan.ice.message.StunMessage;
 import cn.duxinglan.media.core.IMediaNode;
 import cn.duxinglan.media.core.IMediaTransport;
 import cn.duxinglan.media.core.INetworkPacket;
+import cn.duxinglan.media.impl.dtls.DtlsContext;
+import cn.duxinglan.media.impl.dtls.SrtpProfilesType;
 import cn.duxinglan.media.impl.webrtc.NodeFlowManager;
-import cn.duxinglan.media.protocol.rtcp.PsFbRtcpPacket;
+import cn.duxinglan.media.protocol.rtcp.RtcpFactory;
 import cn.duxinglan.media.protocol.rtcp.RtcpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpFactory;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
@@ -18,7 +20,6 @@ import cn.duxinglan.media.transport.nio.webrtc.handler.dtls.DtlsHandler;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.IceHandler;
 import cn.duxinglan.media.transport.nio.webrtc.handler.ice.LocalIceInfo;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,6 +102,10 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
 
     @Getter
     private long lastProcessTime = System.currentTimeMillis();
+
+
+    // 模拟丢包
+    private double lossRate = 0.1; // 10% 丢包
 
 
     public RtpPackProcessor(DatagramChannel channel, InetSocketAddress remoteAddress, RtpThreadProcessor rtpThreadProcessor) {
@@ -194,10 +199,10 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
         SRtcpPacket srtcpPacket = SRtcpFactory.parseBytebufToSrtcpPacket(buf, rtcpAuthTagLength);
         long ssrc = srtcpPacket.getEncryptSsrc();
         try {
-            SRtcpContext clientSRtcpContext = srtpContextFactory.getClientSRtcpContext(ssrc);
+            SRtcpContext clientSRtcpContext = srtpContextFactory.getClientSrtcpContext(ssrc);
             if (srtcpPacket.contrastAuthTag(clientSRtcpContext)) {
                 ByteBuf decrypt = srtcpPacket.decrypt(clientSRtcpContext);
-                List<RtcpPacket> rtcpPackets = SRtcpFactory.packetsSRtcpToRtcp(decrypt);
+                List<RtcpPacket> rtcpPackets = RtcpFactory.packetsSRtcpToRtcp(decrypt);
                 nodeFlowManager.onRtcpPacket(rtcpPackets, remoteAddress);
             }
 
@@ -206,6 +211,7 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
             log.error(e.getMessage(), e);
         }
     }
+
 
     /**
      * 解析并验证一个安全的RTP数据包。
@@ -219,10 +225,16 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
         SRtpPacket srtpPacket = SrtpFactory.parseBytebufToSrtpPacket(buf, rtpAuthTagLength);
         try {
             SRtpContext srtpContext = srtpContextFactory.getClientSrtpContext(srtpPacket.getEncryptSsrc());
-
-
             if (srtpPacket.contrastAuthTag(srtpContext)) {
                 RtpPacket rtpPacket = RtpFactory.parseBytebufToRtpPacket(srtpPacket.decrypt(srtpContext));
+
+               /* if (packetLoss()) {
+                    log.info("接收丢包：{}", rtpPacket.getSequenceNumber());
+                    return;
+                }*/
+
+
+                srtpContext.setLastSeq(rtpPacket.getSequenceNumber());
                 nodeFlowManager.onRtpPacket(rtpPacket);
             }
 
@@ -284,6 +296,10 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
             ByteBuf rtpBytebuf = RtpFactory.parseRtpPacketToBytebuf(senderRtpPacket.ssrc(), senderRtpPacket.rtpPacket());
             SRtpPacket srtpPacket = SrtpFactory.parseDecryptBytebufToSrtpPacket(rtpBytebuf, serverSrtpContext, rtpAuthTagLength);
 //            SrtpPacket srtpPacket = SrtpFactory.parseRtpToSrtpPacket(serverSrtpContext, rtpPackage, rtpAuthTagLength);
+            if (packetLoss()) {
+                log.info("发送丢包：{}", senderRtpPacket.rtpPacket().getSequenceNumber());
+                return;
+            }
             writePackage(srtpPacket);
         } catch (InvalidAlgorithmParameterException | ShortBufferException | IllegalBlockSizeException |
                  BadPaddingException | InvalidKeyException e) {
@@ -298,6 +314,7 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
             SRtcpPacket srtcpPacket = SRtcpFactory.parseRtcpToSRtcp(rtcpPackets, rtcpAuthTagLength);
             SRtcpContext serverSRtcpContext = srtpContextFactory.getServerSRtcpContext(srtcpPacket.getDecryptSsrc());
             ByteBuf encrypt = srtcpPacket.encrypt(serverSRtcpContext);
+
 
             writePackage(srtcpPacket);
             serverSRtcpContext.addSentIndex();
@@ -341,5 +358,11 @@ public class RtpPackProcessor implements IMediaTransport, DtlsContext.DtlsShakeH
     public void closeConnection() {
         log.info("当前连接被关闭");
 
+    }
+
+    private boolean packetLoss() {
+//        return false;
+        // 模拟丢包
+        return Math.random() < lossRate;
     }
 }

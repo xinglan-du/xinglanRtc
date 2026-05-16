@@ -1,7 +1,22 @@
+ /*
+  * 版权所有 (c) 2025 www.duxinglan.cn
+  *
+  * 项目名称：xinglanRtc
+  *
+  * 本文件属于 xinglanRtc 项目的一部分。
+  *
+  * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
+  * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
+  * 收费运维、收费技术支持等行为。
+  *
+  * 详情请参阅项目根目录下的 LICENSE 文件。
+  */
 package cn.duxinglan.media.transport.nio.webrtc.server;
 
 import cn.duxinglan.media.core.INetworkPacket;
+import cn.duxinglan.media.transport.udp.ChannelListener;
 import cn.duxinglan.media.transport.nio.webrtc.RtpThreadProcessor;
+import cn.duxinglan.media.transport.udp.RtpUdpPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.extern.slf4j.Slf4j;
@@ -14,20 +29,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
 
-/**
- *
- * 版权所有 (c) 2025 www.duxinglan.cn
- * <p>
- * 项目名称：xinglanRtc
- * <p>
- * 本文件属于 xinglanRtc 项目的一部分。
- * <p>
- * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
- * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
- * 收费运维、收费技术支持等行为。
- * <p>
- * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
+
 @Slf4j
 public class WebrtcUdpServer {
 
@@ -39,9 +41,14 @@ public class WebrtcUdpServer {
 
     private RtpThreadProcessor rtpThreadProcessor;
 
+    private ChannelListener receiveByteBufListener;
+
+    private final RtpUdpPacket rtpUdpPacket = new RtpUdpPacket();
+
     public WebrtcUdpServer() {
         this.rtpThreadProcessor = new RtpThreadProcessor(this);
     }
+
 
     public void start(int port) throws IOException {
         running = true;
@@ -56,10 +63,8 @@ public class WebrtcUdpServer {
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();
             while (it.hasNext()) {
                 SelectionKey key = it.next();
-//                log.debug("接收到数据");
                 it.remove();
                 if (key.isReadable()) {
-//                    log.debug("读取数据");
                     handleRead((DatagramChannel) key.channel());
                 }
             }
@@ -74,12 +79,6 @@ public class WebrtcUdpServer {
         networkPacket.writeTo(buf);
         ByteBuffer byteBuffer = buf.nioBuffer();
         try {
-           /* if (networkPacket instanceof SRtpPacket){
-                log.debug("发送数据到:{},数据为rtp数据，长度为：{}", remoteAddress, totalLength);
-
-            }else {
-                log.debug("发送数据到:{},数据为:{}", remoteAddress, ByteBufUtil.hexDump(buf));
-            }*/
             channel.send(byteBuffer, remoteAddress);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
@@ -104,6 +103,7 @@ public class WebrtcUdpServer {
     }
 
     private void handleRead(DatagramChannel channel) throws IOException {
+
         // 分配 Direct ByteBuf
         ByteBuf buf = Unpooled.buffer(1500);
         ByteBuffer nioBuffer = buf.nioBuffer(0, buf.capacity());

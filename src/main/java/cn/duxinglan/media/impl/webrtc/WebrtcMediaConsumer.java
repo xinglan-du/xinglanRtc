@@ -218,7 +218,9 @@ public class WebrtcMediaConsumer implements IConsumer {
     @Override
     public void onRtcpPacket(RtcpPacket packet, InetSocketAddress remoteAddress) {
         if (packet instanceof PsFbRtcpPacket psFbRtcpPacket) {
-            if (this.mediaControl != null) {
+            if (psFbRtcpPacket.getPayloadType() == RtcpPayloadType.PSFB.value
+                    && psFbRtcpPacket.getFmt() == 1
+                    && this.mediaControl != null) {
                 this.mediaControl.onPLI();
             }
         }

@@ -1,4 +1,4 @@
-package cn.duxinglan.media.impl.webrtc;
+package cn.duxinglan.media.transport.udp;
 
 /**
  *
@@ -14,5 +14,8 @@ package cn.duxinglan.media.impl.webrtc;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public record WebrtcNodeData(WebrtcNodeDataType type,Object data) {
+public class RtpUdpPacket {
+
+
+
 }

@@ -1,5 +1,7 @@
-package cn.duxinglan.media.core;
+package cn.duxinglan.media.service;
 
+import cn.duxinglan.media.core.IMediaNode;
+import cn.duxinglan.media.core.ISignaling;
 import cn.duxinglan.media.impl.webrtc.WebrtcNode;
 import cn.duxinglan.media.module.CacheModel;
 import cn.duxinglan.media.signaling.data.CreateNodeData;
@@ -39,7 +41,7 @@ import java.util.function.Consumer;
  **/
 @Slf4j
 @Data
-public class MediaConnection implements ISignaling {
+public class MediaConnection implements ISignaling, WebrtcNode.IWebrtcNodeEvent {
 
     private final ChannelHandlerContext ctx;
 
@@ -90,7 +92,7 @@ public class MediaConnection implements ISignaling {
     private IMediaNode createNode(RtpTransportType rtpTransportType, int version, ISignaling signaling) {
         if (rtpTransportType == RtpTransportType.WEBRTC) {
             try {
-                return new WebrtcNode(signaling, version);
+                return new WebrtcNode(this, version);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return null;
@@ -120,5 +122,14 @@ public class MediaConnection implements ISignaling {
             }
         });
 
+    }
+
+    @Override
+    public void onMessage(IMediaNode node, Object data) {
+        try {
+            this.sendMessage(node, data);
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 }

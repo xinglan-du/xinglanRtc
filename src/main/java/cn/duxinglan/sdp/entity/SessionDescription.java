@@ -1,12 +1,4 @@
-package cn.duxinglan.sdp.entity;
-
-import cn.duxinglan.sdp.entity.session.*;
-import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.List;
-
-/**
+/*
  *
  * 版权所有 (c) 2025 www.duxinglan.cn
  * <p>
@@ -19,7 +11,22 @@ import java.util.List;
  * 收费运维、收费技术支持等行为。
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
+ */
+package cn.duxinglan.sdp.entity;
+
+import cn.duxinglan.sdp.entity.session.*;
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 表示会话描述的核心类，用于封装与会话相关的关键信息。
+ * 该类是会话描述协议(SDP)中的一个抽象实现，通常用于媒体会话协商过程。
+ *
+ * SessionDescription 类包含了多个领域模型的属性，这些属性用于描述会话的配置、媒体流信息、
+ * 时间参数等内容。
+ */
 @Data
 public class SessionDescription {
 

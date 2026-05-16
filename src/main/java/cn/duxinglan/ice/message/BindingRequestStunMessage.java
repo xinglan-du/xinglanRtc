@@ -1,9 +1,4 @@
-package cn.duxinglan.ice.message;
-
-import lombok.extern.slf4j.Slf4j;
-
-/**
- *
+/*
  * 版权所有 (c) 2025 www.duxinglan.cn
  * <p>
  * 项目名称：xinglanRtc
@@ -15,8 +10,13 @@ import lombok.extern.slf4j.Slf4j;
  * 收费运维、收费技术支持等行为。
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
+ */
+package cn.duxinglan.ice.message;
+
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 public class BindingRequestStunMessage extends StunMessage {
+
 
 }

@@ -1,6 +1,7 @@
 package cn.duxinglan.sdp.entity.rtp;
 
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -21,6 +22,7 @@ import java.util.Set;
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
 @Data
+@ToString
 public class RtpPayload {
 
     /**

@@ -1,26 +1,26 @@
-package cn.duxinglan.media.transport.nio.webrtc;
+/*
+ * 版权所有 (c) 2025 www.duxinglan.cn
+ *
+ * 项目名称：xinglanRtc
+ *
+ * 本文件属于 xinglanRtc 项目的一部分。
+ *
+ * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
+ * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
+ * 收费运维、收费技术支持等行为。
+ *
+ * 详情请参阅项目根目录下的 LICENSE 文件。
+ */
+package cn.duxinglan.media.impl.dtls;
 
-import cn.duxinglan.media.core.IMediaTransport;
+import cn.duxinglan.media.transport.nio.webrtc.DtlsOutputPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.tls.DatagramTransport;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- *
- * 版权所有 (c) 2025 www.duxinglan.cn
- * <p>
- * 项目名称：xinglanRtc
- * <p>
- * 本文件属于 xinglanRtc 项目的一部分。
- * <p>
- * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
- * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
- * 收费运维、收费技术支持等行为。
- * <p>
- * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
+
 @Slf4j
 public class DatagramTransportImpl implements DatagramTransport {
 
@@ -31,7 +31,7 @@ public class DatagramTransportImpl implements DatagramTransport {
      */
     private final ConcurrentLinkedQueue<byte[]> inboundQueue = new ConcurrentLinkedQueue<>();
 
-    private final IMediaTransport mediaTransport;
+    private final DtlsContext.DtlsEvent dtlsEvent;
 
     // 用于阻塞/唤醒 receive 的监视器
     private final Object receiveMonitor = new Object();
@@ -41,8 +41,8 @@ public class DatagramTransportImpl implements DatagramTransport {
      */
     private volatile boolean closed = false;
 
-    public DatagramTransportImpl(IMediaTransport mediaTransport) {
-        this.mediaTransport = mediaTransport;
+    public DatagramTransportImpl(DtlsContext.DtlsEvent dtlsEvent) {
+        this.dtlsEvent = dtlsEvent;
     }
 
     /**
@@ -116,11 +116,11 @@ public class DatagramTransportImpl implements DatagramTransport {
     @Override
     public void send(byte[] buf, int off, int len) throws IOException {
         if (closed) return;
-        if (mediaTransport == null) {
+        if (dtlsEvent == null) {
             throw new IOException("DatagramTransport 未初始化 Netty 上下文或远端地址");
         }
         DtlsOutputPacket dtlsOutputPacket = new DtlsOutputPacket(buf, off, len);
-        mediaTransport.writePackage(dtlsOutputPacket);
+        dtlsEvent.onMessage(dtlsOutputPacket);
     }
 
     @Override

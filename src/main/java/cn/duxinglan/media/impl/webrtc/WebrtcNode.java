@@ -1,20 +1,4 @@
-package cn.duxinglan.media.impl.webrtc;
-
-import cn.duxinglan.media.core.IConsumer;
-import cn.duxinglan.media.core.IMediaNode;
-import cn.duxinglan.media.core.IProducer;
-import cn.duxinglan.media.core.ISignaling;
-import cn.duxinglan.media.module.CacheModel;
-import cn.duxinglan.media.signaling.data.NodeSignalingData;
-import cn.duxinglan.media.signaling.sdp.RTCSessionDescriptionInit;
-import cn.duxinglan.media.util.UUIDUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
-
-/**
+/*
  *
  * 版权所有 (c) 2025 www.duxinglan.cn
  * <p>
@@ -27,7 +11,28 @@ import lombok.extern.slf4j.Slf4j;
  * 收费运维、收费技术支持等行为。
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
+ */
+package cn.duxinglan.media.impl.webrtc;
+
+import cn.duxinglan.media.core.IConsumer;
+import cn.duxinglan.media.core.IMediaNode;
+import cn.duxinglan.media.core.IProducer;
+import cn.duxinglan.media.impl.dtls.DTLSKeyMaterial;
+import cn.duxinglan.media.impl.dtls.DtlsCertificateGenerator;
+import cn.duxinglan.media.impl.v1.WebrtcNodeData;
+import cn.duxinglan.media.module.CacheModel;
+import cn.duxinglan.media.signaling.data.NodeSignalingData;
+import cn.duxinglan.media.signaling.sdp.RTCSessionDescriptionInit;
+import cn.duxinglan.media.util.UUIDUtils;
+import cn.duxinglan.sdp.entity.IceInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collection;
+
+
 @Slf4j
 public class WebrtcNode implements IMediaNode,
         WebrtcProcessor.IWebrtcProcessorEvent {
@@ -75,29 +80,18 @@ public class WebrtcNode implements IMediaNode,
      * 本变量为只读属性，其内容主要在 WebRTC 初始化过程中生成，并在整个会话中使用。
      */
     @Getter
-    private final WebRTCCertificateGenerator.DTLSKeyMaterial keyMaterial;
+    private final DTLSKeyMaterial keyMaterial;
 
-    /**
-     * 表示用于处理信令交互的核心接口实现。
-     * 该变量提供了信令在节点间交换的基础支持。
-     * <p>
-     * 功能包括：
-     * 1. 负责信令的发送和接收。
-     * 2. 在 WebRTC 节点间建立通信渠道时起关键作用。
-     * <p>
-     * 注意：
-     * 该对象为不可变(final)引用，确保其在整个生命周期内不会被重新赋值。
-     */
-    private final ISignaling signaling;
+    private final IWebrtcNodeEvent webrtcNodeEvent;
 
     private final NodeFlowManager nodeFlowManager;
 
     private final GlobalProducerMediaRouter globalMediaRouter;
 
-    public WebrtcNode(ISignaling signaling, int nodeVersion) throws Exception {
-        this.signaling = signaling;
+    public WebrtcNode(IWebrtcNodeEvent webrtcNodeEvent, int nodeVersion) throws Exception {
+        this.webrtcNodeEvent = webrtcNodeEvent;
         this.nodeVersion = nodeVersion;
-        this.keyMaterial = WebRTCCertificateGenerator.generateDTLSKeyMaterial();
+        this.keyMaterial = DtlsCertificateGenerator.generateDTLSKeyMaterial();
         webrtcProcessor = new WebrtcProcessor(this.keyMaterial, this);
         nodeFlowManager = new NodeFlowManager();
         globalMediaRouter = new GlobalProducerMediaRouter(this);
@@ -178,11 +172,7 @@ public class WebrtcNode implements IMediaNode,
 
     public void sendMessage(WebrtcNodeDataType type, Object data) {
         WebrtcNodeData webrtcNodeData = new WebrtcNodeData(type, data);
-        try {
-            signaling.sendMessage(this, webrtcNodeData);
-        } catch (JsonProcessingException e) {
-            log.error(e.getMessage(), e);
-        }
+        webrtcNodeEvent.onMessage(this, webrtcNodeData);
     }
 
 
@@ -202,10 +192,25 @@ public class WebrtcNode implements IMediaNode,
 
     }
 
+    @Override
+    public void onRemoteMediaLinesParsed(Collection<MediaLineInfo> mediaLines) {
+        //TODO 遗留
+    }
+
 
     @Override
     public WebrtcNode getWebrtcNode() {
         return this;
+    }
+
+    @Override
+    public void onIceInfo(IceInfo localIceInfo, IceInfo remoteIceInfo) {
+        //TODO 忽略
+    }
+
+    @Override
+    public void onSendOffer(RTCSessionDescriptionInit offer) {
+
     }
 
     //创建一个消费者
@@ -214,7 +219,7 @@ public class WebrtcNode implements IMediaNode,
         MediaLineInfo producerMediaLineInfo = producer.getMediaLineInfo();
         MediaLineInfo consumerMediaLineInfo = this.webrtcProcessor.createWebrtcSenderProcessor(producerMediaLineInfo);
         if (consumerMediaLineInfo == null) {
-           throw new IllegalArgumentException("未找到有效的媒体行");
+            throw new IllegalArgumentException("未找到有效的媒体行");
         }
         WebrtcMediaConsumer webrtcMediaConsumer = new WebrtcMediaConsumer(consumerMediaLineInfo);
         nodeFlowManager.addRtpMediaConsumer(webrtcMediaConsumer);
@@ -245,8 +250,14 @@ public class WebrtcNode implements IMediaNode,
     }
 
     @Override
-    public WebRTCCertificateGenerator.DTLSKeyMaterial getDTLSKeyMaterial() {
+    public DTLSKeyMaterial getDTLSKeyMaterial() {
         return getKeyMaterial();
+    }
+
+
+    public interface IWebrtcNodeEvent {
+
+        void onMessage(IMediaNode node, Object data);
     }
 
 

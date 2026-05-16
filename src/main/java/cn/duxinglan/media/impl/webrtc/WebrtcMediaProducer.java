@@ -1,3 +1,16 @@
+ /*
+  * 版权所有 (c) 2025 www.duxinglan.cn
+  *
+  * 项目名称：xinglanRtc
+  *
+  * 本文件属于 xinglanRtc 项目的一部分。
+  *
+  * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
+  * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
+  * 收费运维、收费技术支持等行为。
+  *
+  * 详情请参阅项目根目录下的 LICENSE 文件。
+  */
 package cn.duxinglan.media.impl.webrtc;
 
 import cn.duxinglan.media.core.IMediaControl;
@@ -10,32 +23,24 @@ import cn.duxinglan.media.protocol.rtcp.*;
 import cn.duxinglan.media.protocol.rtp.RtpPacket;
 import cn.duxinglan.media.protocol.rtp.RtpTimeState;
 import cn.duxinglan.media.protocol.rtp.TimerRtpPacket;
+import cn.duxinglan.sdp.entity.rtp.FmtpAttributes;
 import cn.duxinglan.sdp.entity.rtp.RtpPayload;
 import cn.duxinglan.sdp.entity.ssrc.SsrcGroup;
 import cn.duxinglan.sdp.entity.ssrc.SsrcGroupType;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
-/**
- *
- * 版权所有 (c) 2025 www.duxinglan.cn
- * <p>
- * 项目名称：xinglanRtc
- * <p>
- * 本文件属于 xinglanRtc 项目的一部分。
- * <p>
- * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
- * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
- * 收费运维、收费技术支持等行为。
- * <p>
- * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
+
 @Slf4j
 public class WebrtcMediaProducer implements IProducer, IMediaControl {
+
+    private static final int RTCP_RTPFB_NACK_FMT = 1;
+    private static final int MAX_NACK_PID_BLOCKS = 32;
 
 
     @Getter
@@ -84,12 +89,21 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
      */
     private final AtomicBoolean requestKeyframes = new AtomicBoolean(false);
 
-
-
+    /**
+     * 表示接收端的 RTP 数据包统计信息。
+     * 该变量用于记录和维护接收端相关的 RTP 数据包状态信息，
+     * 包括丢包情况、抖动统计和接收速率等。
+     *
+     * 该属性为只读（final），初始化后不可更改。
+     * receiveStats 的初始值为一个新的 RtpReceiveStats 实例，
+     * RtpReceiveStats 类提供详细的统计功能，用于分析 RTP 数据包的传输效率和质量。
+     *
+     * 注意：该实例对象由类 WebrtcMediaProducer 使用，
+     * 用于在接收端进行相关的实时媒体流管理。
+     */
     private final RtpReceiveStats receiveStats = new RtpReceiveStats();
 
     private final SequenceNumberTracker seqTracker = new SequenceNumberTracker();
-
 
 
     public WebrtcMediaProducer(MediaLineInfo mediaLineInfo) {
@@ -129,14 +143,36 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
         }
     }
 
+    /**
+     * 将 RTP 数据包的负载类型和序列号转换为主流格式，以支持处理重传消息。
+     * 如果 RTP 负载对应的 FMTP (格式参数) 中存在关联负载类型，则将负载类型替换为关联类型，
+     * 同时解析载荷的前 2 字节为新的序列号，并进行更新。
+     *
+     * @param rtpPacket 输入的 RTP 数据包，包含待转换的负载类型和序列号。
+     * @return 转换后的 RTP 数据包，更新后的负载类型与序列号。
+     */
+    private RtpPacket rtcToMainPacket(RtpPacket rtpPacket) {
+        int payloadType = rtpPacket.getPayloadType();
+        RtpPayload rtpPayload = mediaLineInfo.getReadInfo().getRtpPayloads().get(payloadType);
+        FmtpAttributes fmtp = rtpPayload.getFmtp();
+        //这个是重传消息
+        if (fmtp != null && fmtp.getAssociatedPayloadType() != null) {
+            Integer associatedPayloadType = fmtp.getAssociatedPayloadType();
+            rtpPacket.setPayloadType(associatedPayloadType);
+            int seq = rtpPacket.getPayload().readUnsignedShort();
+            rtpPacket.setSequenceNumber(seq);
+            log.info("当前为重传消息：{},序列号为：{}", rtpPayload, rtpPacket.getSequenceNumber());
+        }
+        return rtpPacket;
+    }
 
     @Override
     public void onRtpPacket(RtpPacket packet) {
+        packet = rtcToMainPacket(packet);
         int payloadType = packet.getPayloadType();
         RtpPayload rtpPayload = mediaLineInfo.getReadInfo().getRtpPayloads().get(payloadType);
-
         long arrivalTimeNs = System.nanoTime();
-        receiveStats.onRtpPacket(packet,arrivalTimeNs,rtpPayload.getClockRate());
+        receiveStats.onRtpPacket(packet, arrivalTimeNs, rtpPayload.getClockRate());
 
         seqTracker.receive(packet.getSequenceNumber());
 
@@ -153,11 +189,10 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
     }
 
 
-
     @Override
     public void onRtcpPacket(RtcpPacket packet) {
         if (packet instanceof SenderReportRtcpPacket senderReportRtcpPacket) {
-            this.receiveStats.onSenderReport(senderReportRtcpPacket.getNtpSec(),senderReportRtcpPacket.getNtpFrac());
+            this.receiveStats.onSenderReport(senderReportRtcpPacket.getNtpSec(), senderReportRtcpPacket.getNtpFrac());
             this.rtpTimeState.updateFromSr(senderReportRtcpPacket.getNtpSec(), senderReportRtcpPacket.getNtpFrac(), senderReportRtcpPacket.getRtpTimestamp());
             this.producerMediaSubscriber.onSourceTimeReady(this);
 //            log.info("当前的数据：{}", this.rtpTimeState);
@@ -239,7 +274,8 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
      * 返回null表示当前未触发任何关键帧请求信号。
      */
     public PsFbRtcpPacket consumePli() {
-        if (requestKeyframes.compareAndSet(true, false)) {
+//        if (requestKeyframes.compareAndSet(true, false)) {
+        if (false) {
             PsFbRtcpPacket psFbRtcpPacket = new PsFbRtcpPacket();
             psFbRtcpPacket.setVersion((byte) 2);
             psFbRtcpPacket.setPadding((byte) 0);
@@ -252,5 +288,67 @@ public class WebrtcMediaProducer implements IProducer, IMediaControl {
         }
         return null;
 
+    }
+
+    /**
+     * 根据当前的丢包序列数据生成并返回一个 RTCP NACK (Negative Acknowledgment) 包。
+     * <p>
+     * 该方法会检查丢失的扩展序列号列表，如果存在丢包，则按 NACK 协议格式生成相应的 NACK 数据包。
+     * 它将丢包信息编码到 FCI (Feedback Control Information) 字段中，并设置 RTCP 报文的相关字段。
+     * 如果当前不存在丢包，则返回 null。
+     *
+     * @return 一个构造完整的 PsFbRtcpPacket 对象，表示基于当前丢包状态的 NACK 包；
+     * 如果没有丢包，则返回 null。
+     */
+    public PsFbRtcpPacket consumeNack() {
+        log.debug("当前丢包数据：{}", seqTracker.getMissingSeqs().toString());
+
+        List<Long> missingExtendedSeqs = seqTracker.getMissingExtendedSeqs();
+        if (missingExtendedSeqs.isEmpty()) {
+            return null;
+        }
+
+        missingExtendedSeqs.sort(Long::compareTo);
+        ByteBuf fci = Unpooled.buffer(Math.min(missingExtendedSeqs.size(), MAX_NACK_PID_BLOCKS) * 4);
+
+        int pidBlocks = 0;
+        for (int i = 0; i < missingExtendedSeqs.size() && pidBlocks < MAX_NACK_PID_BLOCKS; ) {
+            long pidExtended = missingExtendedSeqs.get(i);
+            int pid = (int) (pidExtended & 0xFFFF);
+            int blp = 0;
+            int j = i + 1;
+            while (j < missingExtendedSeqs.size()) {
+                long delta = missingExtendedSeqs.get(j) - pidExtended;
+                if (delta <= 0) {
+                    j++;
+                    continue;
+                }
+                if (delta > 16) {
+                    break;
+                }
+                blp |= 1 << ((int) delta - 1);
+                j++;
+            }
+
+            fci.writeShort(pid);
+            fci.writeShort(blp);
+            pidBlocks++;
+            i = j;
+        }
+
+        if (!fci.isReadable()) {
+            return null;
+        }
+
+        PsFbRtcpPacket nackPacket = new PsFbRtcpPacket();
+        nackPacket.setVersion((byte) 2);
+        nackPacket.setPadding((byte) 0);
+        nackPacket.setFmt(RTCP_RTPFB_NACK_FMT);
+        nackPacket.setPayloadType(RtcpPayloadType.RTPFB.value);
+        nackPacket.setLength(2 + (fci.readableBytes() / 4));
+        nackPacket.setSenderSsrc(1);
+        nackPacket.setMediaSsrc(mainSsrc);
+        nackPacket.setFci(fci);
+        return nackPacket;
     }
 }

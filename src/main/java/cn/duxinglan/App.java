@@ -1,7 +1,7 @@
 package cn.duxinglan;
 
 import cn.duxinglan.media.config.WebrtcConfig;
-import cn.duxinglan.media.core.MediaServer;
+import cn.duxinglan.media.service.MediaServer;
 import cn.duxinglan.media.module.CacheModel;
 import cn.duxinglan.sdp.entity.Candidate;
 import cn.duxinglan.sdp.entity.type.CandidateAddressType;
@@ -50,7 +50,7 @@ public class App {
         candidate.setFoundation("1");
         candidate.setComponentId(1);
         candidate.setCandidateTransportType(CandidateTransportType.UDP);
-        candidate.setConnectionAddress("10.240.1.51");
+        candidate.setConnectionAddress("10.240.1.248");
         candidate.setPort(webrtcConfig.getWebrtcRtpPort());
         candidate.setCandidateAddressType(CandidateAddressType.HOST);
         CacheModel.setLocalCandidate(candidate);

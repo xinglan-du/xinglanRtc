@@ -1,8 +1,10 @@
 package cn.duxinglan.media.signaling.webrtc;
 
+import cn.duxinglan.media.core.signaling.ISignalingChannelEvent;
 import cn.duxinglan.media.signaling.webrtc.handler.WebrtcNodeHandle;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -46,7 +48,7 @@ public class WebsocketSignalingBootstrap {
     private Channel channel;
 
 
-    public WebsocketSignalingBootstrap(int port, String path) {
+    public WebsocketSignalingBootstrap(int port, String path, ISignalingChannelEvent<ChannelHandlerContext> signalingTransportEvent) {
         this.port = port;
         this.path = path;
         this.bossGroup = new NioEventLoopGroup(1);
@@ -64,15 +66,19 @@ public class WebsocketSignalingBootstrap {
                                 .addLast(new ChunkedWriteHandler())
                                 .addLast(new WebSocketServerCompressionHandler(0))
                                 .addLast(new WebSocketServerProtocolHandler(path, null, true))
-                                .addLast(new WebrtcNodeHandle());
+                                .addLast(new WebrtcNodeHandle(signalingTransportEvent));
                     }
                 });
+    }
+
+
+    public void start() {
         try {
             channel = this.serverBootstrap.bind(port).sync().channel();
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
         }
-
     }
+
 
 }

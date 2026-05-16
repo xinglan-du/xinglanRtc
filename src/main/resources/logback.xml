@@ -102,6 +102,9 @@
 <!--    <logger name="cn.duxinglan.media.impl.webrtc.WebrtcProcessor" level="DEBUG"/>-->
 <!--    <logger name="cn.duxinglan.media.transport.nio.webrtc.server.WebrtcUdpServer" level="DEBUG"/>-->
     <logger name="cn.duxinglan.media.transport.nio.webrtc.RtpThreadProcessor" level="INFO"/>
+    <logger name="cn.duxinglan.media.protocol.srtcp.SRtcpFactory" level="DEBUG"/>
+
+
 
 
 

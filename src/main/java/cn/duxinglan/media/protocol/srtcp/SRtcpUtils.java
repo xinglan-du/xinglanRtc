@@ -1,30 +1,31 @@
-package cn.duxinglan.media.protocol.srtcp;
+ /*
+  * 版权所有 (c) 2025 www.duxinglan.cn
+  *
+  * 项目名称：xinglanRtc
+  *
+  * 本文件属于 xinglanRtc 项目的一部分。
+  *
+  * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
+  * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
+  * 收费运维、收费技术支持等行为。
+  *
+  * 详情请参阅项目根目录下的 LICENSE 文件。
+  */
+ package cn.duxinglan.media.protocol.srtcp;
 
-import io.netty.buffer.ByteBuf;
-
-/**
- *
- * 版权所有 (c) 2025 www.duxinglan.cn
- * <p>
- * 项目名称：xinglanRtc
- * <p>
- * 本文件属于 xinglanRtc 项目的一部分。
- * <p>
- * 本软件依据 XinglanRtc 非商业许可证（XNCL）授权，仅限个人非商业使用。
- * 禁止任何形式的商业用途，包括但不限于：收费安装、收费部署、
- * 收费运维、收费技术支持等行为。
- * <p>
- * 详情请参阅项目根目录下的 LICENSE 文件。
- **/
-public class SRtcpUtils {
+ import cn.duxinglan.media.transport.nio.webrtc.SRtcpContext;
+ import io.netty.buffer.ByteBuf;
 
 
-    public static long getSsrc(ByteBuf byteBuf) {
-        return byteBuf.getUnsignedInt(4);
-    }
+ public class SRtcpUtils {
 
-    public static int getSRtcpIndex(ByteBuf byteBuf, int rtcpAuthTagLength) {
-        int i = byteBuf.readableBytes() - SRtcpFactory.S_RTCP_INDEX_LENGTH - rtcpAuthTagLength;
-        return byteBuf.getInt(i);
-    }
-}
+
+     public static long getSsrc(ByteBuf byteBuf) {
+         return byteBuf.getUnsignedInt(4);
+     }
+
+     public static int getSRtcpIndex(ByteBuf byteBuf, int rtcpAuthTagLength) {
+         int i = byteBuf.readableBytes() - SRtcpContext.S_RTCP_INDEX_LENGTH - rtcpAuthTagLength;
+         return byteBuf.getInt(i);
+     }
+ }

@@ -117,12 +117,12 @@ public class SRtcpPacket implements INetworkPacket {
 
     public void setDecryptByteBuf(ByteBuf decryptByteBuf) {
         this.decryptByteBuf = decryptByteBuf;
-        payloadLength = decryptByteBuf.readableBytes() - SRtcpFactory.S_RTCP_HEADER_LENGTH;
+        payloadLength = decryptByteBuf.readableBytes() - SRtcpContext.S_RTCP_HEADER_LENGTH;
     }
 
     public void setEncryptByteBuf(ByteBuf encryptByteBuf) {
         this.encryptByteBuf = encryptByteBuf;
-        payloadLength = encryptByteBuf.readableBytes() - SRtcpFactory.S_RTCP_HEADER_LENGTH - SRtcpFactory.S_RTCP_INDEX_LENGTH - authTagLength;
+        payloadLength = encryptByteBuf.readableBytes() - SRtcpContext.S_RTCP_HEADER_LENGTH - SRtcpContext.S_RTCP_INDEX_LENGTH - authTagLength;
         sRtcpIndex = SRtcpUtils.getSRtcpIndex(encryptByteBuf, authTagLength);
         encryptByteBuf.getBytes(encryptByteBuf.readableBytes() - authTagLength, authTag);
     }
@@ -149,7 +149,7 @@ public class SRtcpPacket implements INetworkPacket {
      */
     public boolean contrastAuthTag(SRtcpContext sRtcpContext) {
         int index = sRtcpIndex | 0x80000000;
-        int length = SRtcpFactory.S_RTCP_HEADER_LENGTH + payloadLength;
+        int length = SRtcpContext.S_RTCP_HEADER_LENGTH + payloadLength;
         byte[] bytes = SrtpUtils.calculateAuthTag(encryptByteBuf.nioBuffer(), length, sRtcpContext.getKdf().getAuthKey(), index, authTagLength);
         return MessageDigest.isEqual(authTag, bytes);
     }
@@ -162,7 +162,7 @@ public class SRtcpPacket implements INetworkPacket {
      */
     public void calculateAuthTag(SRtcpContext sRtcpContext) {
         int index = sRtcpIndex | 0x80000000;
-        int length = SRtcpFactory.S_RTCP_HEADER_LENGTH + payloadLength;
+        int length = SRtcpContext.S_RTCP_HEADER_LENGTH + payloadLength;
         authTag = SrtpUtils.calculateAuthTag(encryptByteBuf.nioBuffer(), length, sRtcpContext.getKdf().getAuthKey(), index, authTagLength);
         encryptByteBuf.writeBytes(authTag);
     }
@@ -202,7 +202,7 @@ public class SRtcpPacket implements INetworkPacket {
         if (this.encryptByteBuf == null) {
             throw new IllegalArgumentException("encryptByteBuf未设置");
         }
-        this.decryptByteBuf = Unpooled.buffer(this.encryptByteBuf.readableBytes() - SRtcpFactory.S_RTCP_INDEX_LENGTH - authTagLength);
+        this.decryptByteBuf = Unpooled.buffer(this.encryptByteBuf.readableBytes() - SRtcpContext.S_RTCP_INDEX_LENGTH - authTagLength);
         //先写入没有加密的数据
         this.decryptByteBuf.writeBytes(this.encryptByteBuf, 0, S_RTCP_HEADER_LENGTH);
 
@@ -221,7 +221,7 @@ public class SRtcpPacket implements INetworkPacket {
         if (this.decryptByteBuf == null) {
             throw new IllegalArgumentException("decryptByteBuf未设置");
         }
-        encryptByteBuf = Unpooled.buffer(this.decryptByteBuf.readableBytes() + SRtcpFactory.S_RTCP_INDEX_LENGTH + authTagLength);
+        encryptByteBuf = Unpooled.buffer(this.decryptByteBuf.readableBytes() + SRtcpContext.S_RTCP_INDEX_LENGTH + authTagLength);
 
         this.encryptByteBuf.writeBytes(this.decryptByteBuf, 0, S_RTCP_HEADER_LENGTH);
 

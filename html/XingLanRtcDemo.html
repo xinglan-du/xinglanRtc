@@ -27,6 +27,9 @@
     let audioTransceiver = null;
 
 
+
+
+
     async function init() {
         pc = new RTCPeerConnection();
 
@@ -223,7 +226,7 @@
             const jsonData = JSON.parse(event.data);
 
             if (jsonData.type === 0) { // 收到 offer
-                nodeId = jsonData.data.nodeId;
+                nodeId = jsonData.data.id;
                 console.log("接收到创建node消息：", nodeId);
             } else if (jsonData.type === 1) {
                 await handleNodeData(jsonData.data);
@@ -262,16 +265,27 @@
 
         console.log("发送 answer:", answer);
 
-        // 发送 answer 给信令服务器
-        sendMessage({
+
+        sendEndpointMessage(nodeId, {
             type: 1,
             data: {
-                nodeId: nodeId,
-                data: {
-                    type: 1,
-                    data: answer
-                }
+                type: 'answer',
+                sdp: answer.sdp
             }
+        });
+    }
+
+    function sendEndpointMessage(id, msg) {
+        sendSignalMessage(1, {
+            id: id,
+            data: msg
+        })
+    }
+
+    function sendSignalMessage(type, endpointMsg) {
+        sendMessage({
+            type: type,
+            data: endpointMsg
         });
     }
 
@@ -280,13 +294,9 @@
     }
 
     function applyNode() {
-        sendMessage({
-            type: 0,
-            data: {
-                transportType: 0,
-                version: 1
-            }
-        });
+        sendSignalMessage(0, {
+            protocol: 'webrtc'
+        })
     }
 
     async function loadDevices() {
@@ -359,16 +369,13 @@
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         console.log("发送offer", offer);
-        sendMessage({
+        sendEndpointMessage(nodeId, {
             type: 1,
             data: {
-                nodeId: nodeId,
-                data: {
-                    type: 0,
-                    data: offer
-                }
+                type: 'offer',
+                sdp: offer.sdp
             }
-        });
+        })
         console.log("生成 offer:", offer);
 
         // 你自己处理发送
@@ -396,20 +403,17 @@
 
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-
-        sendMessage({
+        sendEndpointMessage(nodeId, {
             type: 1,
             data: {
-                nodeId: nodeId,
-                data: {
-                    type: 0,
-                    data: offer
-                }
+                type: 'offer',
+                sdp: offer.sdp
             }
-        });
-
+        })
         console.log("音频 Offer 已发送");
     }
+
+
 
 
     window.onload = connect;

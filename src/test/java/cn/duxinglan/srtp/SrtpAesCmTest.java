@@ -10,7 +10,7 @@ import cn.duxinglan.media.protocol.srtp.SRtpPacket;
 import cn.duxinglan.media.transport.nio.webrtc.SRtcpContext;
 import cn.duxinglan.media.transport.nio.webrtc.SRtpContext;
 import cn.duxinglan.media.transport.nio.webrtc.SrtpContextFactory;
-import cn.duxinglan.media.transport.nio.webrtc.SrtpProfilesType;
+import cn.duxinglan.media.impl.dtls.SrtpProfilesType;
 import cn.duxinglan.media.util.ByteUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -159,7 +159,7 @@ public class SrtpAesCmTest {
         SrtpContextFactory srtpContextFactory = new SrtpContextFactory();
         srtpContextFactory.setSrtpProfilesType(srtpProfilesType);
         srtpContextFactory.setClientCipher(test_key, test_key_salt);
-        SRtcpContext sRtcpContext = srtpContextFactory.getClientSRtcpContext(ssrc);
+        SRtcpContext sRtcpContext = srtpContextFactory.getClientSrtcpContext(ssrc);
 
         SRtcpPacket sRtcpPacket = SRtcpFactory.parseBytebufToSrtcpPacket(byteBuf, srtpProfilesType.rtpAuthTagLength);
         ByteBuf decrypt = sRtcpPacket.decrypt(sRtcpContext);
@@ -190,16 +190,15 @@ public class SrtpAesCmTest {
         srtpContextFactory.setServerCipher(test_key, test_key_salt);
         SRtcpContext sRtcpContext = srtpContextFactory.getServerSRtcpContext(ssrc);
 
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(rtcp_plaintext_ref);
-        SRtcpPacket sRtcpPacket = new SRtcpPacket(srtpProfilesType.rtcpAuthTagLength);
-        sRtcpPacket.setDecryptByteBuf(byteBuf);
+        ByteBuf decryptByteBuf = Unpooled.wrappedBuffer(rtcp_plaintext_ref);
 
-        sRtcpPacket.encrypt(sRtcpContext);
-        sRtcpContext.addSentIndex();
-        int totalLength = sRtcpPacket.getTotalLength();
-        ByteBuf buffer = Unpooled.buffer(totalLength);
-        sRtcpPacket.writeTo(buffer);
-        return buffer;
+
+        ByteBuf encryptByteBuf = Unpooled.buffer(decryptByteBuf.readableBytes() + SRtcpContext.S_RTCP_INDEX_LENGTH + sRtcpContext.getAuthTagLength());
+
+
+        sRtcpContext.encrypt(decryptByteBuf,encryptByteBuf);
+
+        return encryptByteBuf;
     }
 
     /**

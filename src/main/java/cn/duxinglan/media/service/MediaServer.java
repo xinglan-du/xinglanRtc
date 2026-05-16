@@ -1,4 +1,4 @@
-package cn.duxinglan.media.core;
+package cn.duxinglan.media.service;
 
 import cn.duxinglan.media.config.WebrtcConfig;
 import cn.duxinglan.media.signaling.webrtc.WebsocketSignalingBootstrap;
@@ -36,6 +36,8 @@ public class MediaServer {
 
     private WebrtcUdpServer webrtcUdpServer;
 
+    private WebrtcService webrtcService;
+
     public static MediaServer getInstance(WebrtcConfig webrtcConfig) {
         if (instance == null) {
             synchronized (MediaServer.class) {
@@ -54,7 +56,24 @@ public class MediaServer {
 
 
     public void startWebrtc() {
-        websocketSignalingBootstrap = new WebsocketSignalingBootstrap(webrtcConfig.getSignalingPort(), webrtcConfig.getSignalingPath());
+
+        if (webrtcService == null) {
+            synchronized (MediaServer.class) {
+                if (webrtcService == null) {
+                    webrtcService = new WebrtcService(webrtcConfig);
+                }
+            }
+        }
+        try {
+            webrtcService.start();
+            log.info("webrtc服务启动成功");
+        } catch (IOException e) {
+            log.error("webrtc服务启动失败", e);
+        }
+
+
+       /* websocketSignalingBootstrap = new WebsocketSignalingBootstrap(webrtcConfig.getSignalingPort(), webrtcConfig.getSignalingPath());
+        websocketSignalingBootstrap.start();
         webrtcUdpServer = new WebrtcUdpServer();
         thread = new Thread(new Runnable() {
             @Override
@@ -66,15 +85,16 @@ public class MediaServer {
                 }
             }
         });
-        thread.start();
+        thread.start();*/
 
 //        webRtcNettyBootstrap = new WebRtcNettyBootstrap(webrtcConfig.getWebrtcRtpPort());
     }
 
 
     public List<Channel> getAllChannels() {
-        Channel webrtcChannel = websocketSignalingBootstrap.getChannel();
+//        Channel webrtcChannel = websocketSignalingBootstrap.getChannel();
+        Channel[] channels = webrtcService.getChannels();
 //        Channel webrtcMediaChannel = webRtcNettyBootstrap.getChannel();
-        return List.of(webrtcChannel/*, webrtcMediaChannel*/);
+        return List.of(channels/*, webrtcMediaChannel*/);
     }
 }

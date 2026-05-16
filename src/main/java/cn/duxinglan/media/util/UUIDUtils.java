@@ -1,5 +1,7 @@
 package cn.duxinglan.media.util;
 
+import org.jspecify.annotations.NonNull;
+
 import java.util.UUID;
 
 /**
@@ -24,7 +26,7 @@ public class UUIDUtils {
      *
      * @return 去掉横线的随机UUID字符串
      */
-    public static String createUUID() {
+    public static @NonNull String createUUID() {
         return UUID.randomUUID().toString().replace("-", "");
     }
 }

@@ -18,6 +18,8 @@ import cn.duxinglan.media.protocol.rtp.RtpPacket;
  **/
 public class RtpReceiveStats {
 
+    private static final long RTP_SEQ_MOD = 1L << 16;
+
     // ================= 序列号 / 丢包 =================
     private boolean initialized = false;
 
@@ -45,7 +47,7 @@ public class RtpReceiveStats {
      * @param clockRate     RTP 时钟频率
      */
     public void onRtpPacket(RtpPacket packet, long arrivalTimeNs, int clockRate) {
-        int seq = packet.getSequenceNumber();
+        int seq = packet.getSequenceNumber() & 0xFFFF;
 
         updateSeq(seq);
 
@@ -72,6 +74,15 @@ public class RtpReceiveStats {
      * 生成 RR 快照（不会修改历史统计）
      */
     public ReceiverReportSnapshot snapshot(long nowNs) {
+        if (!initialized) {
+            long dlsr = 0;
+            if (lastSr != 0) {
+                long delayNs = nowNs - lastSrArrivalNs;
+                dlsr = (delayNs * 65536) / 1_000_000_000L;
+            }
+            return new ReceiverReportSnapshot(0, 0, 0, jitter, lastSr, dlsr);
+        }
+
         long extendedMaxSeq = cycles + maxSeq;
         long expected = extendedMaxSeq - baseSeq + 1;
         long lost = expected - received;
@@ -113,6 +124,7 @@ public class RtpReceiveStats {
     // ================= 内部方法 =================
 
     private void updateSeq(int seq) {
+        seq &= 0xFFFF;
         if (!initialized) {
             baseSeq = seq;
             maxSeq = seq;
@@ -121,15 +133,24 @@ public class RtpReceiveStats {
             return;
         }
 
-        // 检测回绕
-        if (seq < maxSeq && maxSeq - seq > 30000) {
-            cycles += 1L << 16;
-        }
-
-        if (seq > maxSeq) {
-            maxSeq = seq;
+        long currentExtendedMax = cycles + maxSeq;
+        long extendedSeq = extendToNearestCycle(seq, currentExtendedMax);
+        if (extendedSeq > currentExtendedMax) {
+            maxSeq = (int) (extendedSeq & 0xFFFF);
+            cycles = extendedSeq & 0xFFFF0000L;
         }
 
         received++;
+    }
+
+    private long extendToNearestCycle(int seq16, long referenceExtendedSeq) {
+        int referenceSeq16 = (int) (referenceExtendedSeq & 0xFFFF);
+        long diff = seq16 - referenceSeq16;
+        if (diff > (RTP_SEQ_MOD / 2 - 1)) {
+            diff -= RTP_SEQ_MOD;
+        } else if (diff < -(RTP_SEQ_MOD / 2)) {
+            diff += RTP_SEQ_MOD;
+        }
+        return referenceExtendedSeq + diff;
     }
 }

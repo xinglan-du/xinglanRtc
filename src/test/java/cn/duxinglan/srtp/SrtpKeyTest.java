@@ -2,7 +2,7 @@ package cn.duxinglan.srtp;
 
 import cn.duxinglan.media.transport.nio.webrtc.SRtpContext;
 import cn.duxinglan.media.transport.nio.webrtc.SrtpContextFactory;
-import cn.duxinglan.media.transport.nio.webrtc.SrtpProfilesType;
+import cn.duxinglan.media.impl.dtls.SrtpProfilesType;
 import cn.duxinglan.media.util.ByteUtils;
 import org.junit.jupiter.api.Test;
 

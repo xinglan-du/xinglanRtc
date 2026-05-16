@@ -1,8 +1,8 @@
 package cn.duxinglan.media.signaling.webrtc.handler;
 
-import cn.duxinglan.media.core.MediaConnection;
+import cn.duxinglan.media.core.signaling.ISignalingChannelEvent;
+import cn.duxinglan.media.core.signaling.SignalMessage;
 import cn.duxinglan.media.module.CacheModel;
-import cn.duxinglan.media.signaling.data.SignalingData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -23,37 +23,43 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
  * <p>
  * 详情请参阅项目根目录下的 LICENSE 文件。
  **/
-public class WebrtcNodeHandle extends SimpleChannelInboundHandler<WebSocketFrame>  {
+public class WebrtcNodeHandle extends SimpleChannelInboundHandler<WebSocketFrame> {
 
     private final ObjectMapper objectMapper = CacheModel.getObjectMapper();
 
-    private MediaConnection mediaConnection;
+//    private MediaConnection mediaConnection;
 
     private ChannelHandlerContext ctx;
+
+    private final ISignalingChannelEvent<ChannelHandlerContext> signalingTransportEvent;
+
+    public WebrtcNodeHandle(ISignalingChannelEvent<ChannelHandlerContext> signalingTransportEvent) {
+        this.signalingTransportEvent = signalingTransportEvent;
+    }
 
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         this.ctx = ctx;
-        mediaConnection = new MediaConnection(ctx);
+//        mediaConnection = new MediaConnection(ctx);
+        signalingTransportEvent.onAction(ctx);
         super.channelActive(ctx);
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame msg) throws Exception {
         if (msg instanceof TextWebSocketFrame textWebSocketFrame) {
-            SignalingData signalingData = objectMapper.readValue(textWebSocketFrame.text(), SignalingData.class);
-            signalingProcessor(signalingData, ctx);
+            SignalMessage signalMessage = objectMapper.readValue(textWebSocketFrame.text(), SignalMessage.class);
+            signalingProcessor(signalMessage, ctx);
         }
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        mediaConnection.close();
+//        mediaConnection.close();
+        signalingTransportEvent.onClosed(ctx);
     }
-
-
 
 
     /**
@@ -63,12 +69,10 @@ public class WebrtcNodeHandle extends SimpleChannelInboundHandler<WebSocketFrame
      * @param signalingData 表示信令的数据对象，包含信令类型和相关数据。
      * @param ctx           Netty的ChannelHandler上下文，用于处理网络事件。
      */
-    private void signalingProcessor(SignalingData signalingData, ChannelHandlerContext ctx) {
-        mediaConnection.handleSignalingData(signalingData);
+    private void signalingProcessor(SignalMessage signalMessage, ChannelHandlerContext ctx) {
+//        mediaConnection.handleSignalingData(signalingData);
+        signalingTransportEvent.handleSignalingData(ctx,signalMessage);
     }
-
-
-
 
 
 }
