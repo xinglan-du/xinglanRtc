@@ -15,7 +15,6 @@
 
  import cn.duxinglan.media.core.IConsumer;
  import cn.duxinglan.media.core.IMediaNode;
- import cn.duxinglan.media.core.IProducer;
  import cn.duxinglan.media.core.MediaSession;
  import cn.duxinglan.media.core.endpoint.Endpoint;
  import cn.duxinglan.media.impl.DefaultRouter;
@@ -24,7 +23,6 @@
 
  import java.util.ArrayList;
  import java.util.List;
- import java.util.Set;
 
 
  @Slf4j
@@ -64,36 +62,6 @@
 
      }
 
-
-     public void addMediaNode(IMediaNode newMediaNode) {
-         mediaNodeList.add(newMediaNode);
-         GlobalProducerMediaRouter globalMediaRouter = newMediaNode.getGlobalMediaRouter();
-         globalMediaRouter.setMediaNodeMediaProducerListener(new GlobalProducerMediaRouter.IMediaNodeMediaProducerListener() {
-             @Override
-             public void onAddMediaProducer(IMediaNode currentMediaNode, GlobalProducerMediaRouter globalMediaRouter, IProducer producer) {
-                 for (IMediaNode mediaNode : mediaNodeList) {
-                     if (mediaNode == currentMediaNode) {
-                         continue;
-                     }
-                     IConsumer consumer = mediaNode.createConsumer(producer);
-                     globalMediaRouter.addConsumer(producer, consumer);
-                     mediaNode.updateOfferInfo();
-                 }
-             }
-         });
-
-         for (IMediaNode mediaNode : mediaNodeList) {
-             if (mediaNode == newMediaNode) {
-                 continue;
-             }
-             globalMediaRouter = mediaNode.getGlobalMediaRouter();
-             Set<IProducer> producerList = globalMediaRouter.getProducers();
-             for (IProducer producer : producerList) {
-                 IConsumer consumer = newMediaNode.createConsumer(producer);
-                 globalMediaRouter.addConsumer(producer, consumer);
-             }
-         }
-     }
 
      public void removeMediaNode(IMediaNode removeMediaNode) {
          if (mediaNodeList.remove(removeMediaNode)) {

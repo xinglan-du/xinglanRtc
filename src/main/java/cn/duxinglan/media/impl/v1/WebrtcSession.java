@@ -28,6 +28,7 @@
  import cn.duxinglan.media.protocol.rtcp.PsFbRtcpPacket;
  import cn.duxinglan.media.protocol.rtcp.RtcpPacket;
  import cn.duxinglan.media.protocol.rtcp.RtcpPayloadType;
+ import cn.duxinglan.media.protocol.rtcp.SenderReportRtcpPacket;
  import cn.duxinglan.media.transport.udp.BasePacket;
  import cn.duxinglan.media.util.UUIDUtils;
  import cn.duxinglan.sdp.entity.ssrc.SSRC;
@@ -81,6 +82,7 @@
          for (RtcpPacket rtcpPacket : rtcpPackets) {
              long ssrc = 0;
              switch (rtcpPacket) {
+                 case SenderReportRtcpPacket senderReportRtcpPacket -> ssrc = senderReportRtcpPacket.getSsrc();
                  case PsFbRtcpPacket psFbRtcpPacket -> {
                      ssrc = psFbRtcpPacket.getMediaSsrc();
                      if (psFbRtcpPacket.getPayloadType() == RtcpPayloadType.PSFB.value

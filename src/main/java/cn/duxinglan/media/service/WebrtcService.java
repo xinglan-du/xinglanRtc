@@ -68,9 +68,12 @@ public class WebrtcService implements ISignalingChannelEvent<ChannelHandlerConte
      */
     private final Map<ChannelHandlerContext, WsSignalingConnection> wsSignalingConnectionMap = new ConcurrentHashMap<>();
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(
+    /*private final ExecutorService executor = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors()
     );
+*/
+
+    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     private final Map<ChannelContext, WebrtcTransportSession> webrtcNodeServerMap = new ConcurrentHashMap<>();
 

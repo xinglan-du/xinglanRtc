@@ -60,7 +60,6 @@ public class MediaConnection implements ISignaling, WebrtcNode.IWebrtcNodeEvent 
             CreateNodeData createNodeData = objectMapper.convertValue(signalingData.data(), CreateNodeData.class);
             IMediaNode node = createNode(createNodeData.transportType(), createNodeData.version(), this);
             mediaNodeMap.put(node.getNodeId(), node);
-            RoomService.getInstance().addMediaNode(node);
 
             try {
                 sendMessage(new SignalingData(SignalingType.INIT, new CreateNodeData(RtpTransportType.WEBRTC, node.getNodeVersion(), node.getNodeId())));

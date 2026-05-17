@@ -18,10 +18,7 @@
  import cn.duxinglan.media.core.stream.MediaSink;
  import cn.duxinglan.media.impl.webrtc.MediaLineInfo;
  import cn.duxinglan.media.protocol.ChannelInRtpPacket;
- import cn.duxinglan.media.protocol.rtcp.PsFbRtcpPacket;
- import cn.duxinglan.media.protocol.rtcp.RtcpGroupPacket;
- import cn.duxinglan.media.protocol.rtcp.RtcpPacket;
- import cn.duxinglan.media.protocol.rtcp.RtcpPayloadType;
+ import cn.duxinglan.media.protocol.rtcp.*;
  import cn.duxinglan.media.protocol.rtp.RtpPacket;
  import cn.duxinglan.sdp.entity.rtp.FmtpAttributes;
  import cn.duxinglan.sdp.entity.rtp.RtpPayload;
@@ -50,6 +47,8 @@
 
      private final ProducerEvent producerEvent;
 
+     private final InboundRtpStream inboundRtpStream = new InboundRtpStream();
+
      public WebrtcProducer(MediaInfoType mediaInfoType, String mediaId, MediaLineInfo.Info info, ProducerEvent producerEvent) {
          this.mediaInfoType = mediaInfoType;
          this.mediaId = mediaId;
@@ -76,7 +75,9 @@
 
      @Override
      public void onRtcpPacket(RtcpPacket rtcpPacket) {
-
+        if (rtcpPacket instanceof SenderReportRtcpPacket senderReportRtcpPacket) {
+            inboundRtpStream.onSenderReport(senderReportRtcpPacket);
+        }
      }
 
 
